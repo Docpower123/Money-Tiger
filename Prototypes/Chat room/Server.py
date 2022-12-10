@@ -1,21 +1,25 @@
-import socket
+from socket import *
+from time import ctime
 import threading
 import queue
 
 messages = queue.Queue()
 clients = []
 
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server.bind(('localhost', 9999))
+HOST = '192.168.1.104'
+PORT = 9999
+BUFSIZE = 1024
+ADDR = (HOST, PORT)
+
+master = socket(AF_INET, SOCK_DGRAM)
+master.bind(ADDR)
+print('Server is up and running!')
 
 
 def receive():
     while True:
-        try:
-            message, addr = server.recvfrom(1024)
-            messages.put((message, addr))
-        except:
-            pass
+        message, addr = master.recvfrom(1024)
+        messages.put((message, addr))
 
 
 def broadcast():
@@ -29,9 +33,10 @@ def broadcast():
                 try:
                     if message.decode().startswith("SIGNUP_TAG:"):
                         name = message.decode()[message.decode().index(':') + 1:]
-                        server.sendto(f"{name} Joined!", client)
+                        print('got here! ')
+                        master.sendto(f"{name} Joined!", client)
                     else:
-                        server.sendto(message)
+                        master.sendto(message)
                 except:
                     clients.remove(client)
 
@@ -41,3 +46,16 @@ t2 = threading.Thread(target=broadcast)
 
 t1.start()
 t2.start()
+
+# while True:
+#    print("...waiting for message...")
+#    data, ADDR = master.recvfrom(BUFSIZE)
+#    data = data.decode()
+#    if data is None:
+#        break
+#    print("[%s]: From Address %s:%s receive data: %s" % (ctime(), ADDR[0], ADDR[1], data))
+
+#   send_data = ("> ").encode()
+#   if send_data is not None:
+#      master.sendto(send_data, ADDR)
+# master.close()

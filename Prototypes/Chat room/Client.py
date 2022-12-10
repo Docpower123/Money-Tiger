@@ -2,7 +2,7 @@ import socket
 import threading
 import random
 
-addr = ('localhost', random.randint(8000, 9000))
+addr = ( '192.168.56.1', random.randint(8000, 9000))
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client.bind(addr)
 
@@ -20,7 +20,7 @@ def receive():
 
 t = threading.Thread(target=receive)
 t.start()
-client.sendto(f"SIGNUP_TAG:{name}".encode(), ("localhost", 9999))
+client.sendto(f"SIGNUP_TAG:{name}".encode(), ("192.168.56.1", 9999))
 
 while True:
     message = input("")
