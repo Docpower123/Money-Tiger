@@ -4,7 +4,7 @@ clients = []
 slaves = []
 
 # parameters for the server to use
-HOST = '192.168.175.248'
+HOST = '192.168.1.161'
 PORT = 9999
 ADDR = (HOST, PORT)
 
@@ -13,6 +13,7 @@ def handle_new_user(addr):
     """
     code to find out the best server
     """
+    print(addr)
     server = slaves[0]
     loadbalancer.sendto(f'{server}'.encode(), addr)
     loadbalancer.sendto(f'{addr}'.encode(), server)
@@ -35,7 +36,9 @@ while True:
     if count == 1:
         break
 
-# begin work with clients:
-if addr not in clients and addr not in slaves:
-    clients.append(addr)
-    handle_new_user(addr)
+while True:
+    # begin work with clients:
+    data, addr = loadbalancer.recvfrom(1024)
+    if addr not in clients and addr not in slaves:
+        clients.append(addr)
+        handle_new_user(addr)
