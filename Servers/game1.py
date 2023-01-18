@@ -3,7 +3,7 @@ from socket import *
 
 # parameters for the server to use
 HOST = '192.168.173.149'
-PORT = 6777
+PORT = 6665
 ADDR = (HOST, PORT)
 Server_ADDR = ('192.168.173.149', 9999)
 

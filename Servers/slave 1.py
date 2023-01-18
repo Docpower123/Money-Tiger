@@ -1,14 +1,34 @@
 from socket import *
+import queue
+import threading
 
 # parameters for the server to use
-HOST = '192.168.1.161'
+HOST = '192.168.173.149'
 PORT = 9996
 ADDR = (HOST, PORT)
-Client_addr = ()
+clients = []
+messages = queue.Queue()
+
 # setting up the server
 slave = socket(AF_INET, SOCK_DGRAM)
 slave.bind(ADDR)
-slave.sendto(f'{ADDR}'.encode(), ('192.168.1.161', 9999))
+slave.sendto(f'{ADDR}'.encode(), ('192.168.173.149', 9999))
+
+
+def receive():
+    while True:
+        message, addr = slave.recvfrom(1024)
+        messages.put((message, addr))
+
+
+def broadcast():
+    while True:
+        while not messages.empty():
+            message, addr = messages.get()
+            for client in clients:
+                slave.sendto(f'{message.decode()}'.encode(), client)
+
+
 while True:
     data, addr = slave.recvfrom(1024)
     if data.decode() == 'done':
@@ -19,13 +39,11 @@ print('slave is up and running!')
 while True:
     data, addr = slave.recvfrom(1024)
     if data.decode():
-        Client_addr = eval(data.decode())
+        clients.append(eval(data.decode()))
         break
 
-while True:
-    data, addr = slave.recvfrom(1024)
-    if data.decode() and addr == Client_addr:
-        cords = data.decode().split(',')
-        print(cords[0], cords[1])
-        cords[0] = cords[1]
-        slave.sendto(f'{cords[0]}, {cords[1]}'.encode(), Client_addr)
+t1 = threading.Thread(target=receive)
+t2 = threading.Thread(target=broadcast)
+
+t1.start()
+t2.start()

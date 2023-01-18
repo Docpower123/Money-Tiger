@@ -4,7 +4,7 @@ clients = []
 slaves = []
 
 # parameters for the server to use
-HOST = '192.168.1.161'
+HOST = '192.168.173.149'
 PORT = 9999
 ADDR = (HOST, PORT)
 
