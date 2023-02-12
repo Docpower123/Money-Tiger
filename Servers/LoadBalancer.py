@@ -1,11 +1,12 @@
 from socket import *
+from settings import *
 
 clients = []
 slaves = []
 
 # parameters for the server to use
-HOST = '192.168.173.149'
-PORT = 9999
+HOST = LB_IP
+PORT = LB_PORT
 ADDR = (HOST, PORT)
 
 
@@ -13,10 +14,10 @@ def handle_new_user(addr):
     """
     code to find out the best server
     """
-    print(addr)
+    print('new client!', addr)
     server = slaves[0]
     loadbalancer.sendto(f'{server}'.encode(), addr)
-    loadbalancer.sendto(f'{addr}'.encode(), server)
+    loadbalancer.sendto(f'IP{addr}'.encode(), server)
 
 
 # setting up the server
@@ -28,7 +29,6 @@ print('load balancer is up and running!')
 count = 0
 while True:
     data, addr = loadbalancer.recvfrom(1024)
-    print(addr)
     if str(addr[1]).startswith('9'):
         slaves.append(addr)
         loadbalancer.sendto(f'done'.encode(), addr)

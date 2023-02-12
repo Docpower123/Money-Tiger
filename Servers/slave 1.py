@@ -1,10 +1,11 @@
 from socket import *
+from settings import *
 import queue
 import threading
 
 # parameters for the server to use
-HOST = '192.168.173.149'
-PORT = 9996
+HOST = S1_IP
+PORT = S1_PORT
 ADDR = (HOST, PORT)
 clients = []
 messages = queue.Queue()
@@ -12,7 +13,7 @@ messages = queue.Queue()
 # setting up the server
 slave = socket(AF_INET, SOCK_DGRAM)
 slave.bind(ADDR)
-slave.sendto(f'{ADDR}'.encode(), ('192.168.173.149', 9999))
+slave.sendto(f'{ADDR}'.encode(), (LB_IP, LB_PORT))
 
 
 def receive():
@@ -29,6 +30,17 @@ def broadcast():
                 slave.sendto(f'{message.decode()}'.encode(), client)
 
 
+def find_clients():
+    while True:
+        data, addr = slave.recvfrom(1024)
+        if data.decode():
+            the_data = data.decode()
+            if the_data[0:2] == 'IP':
+                clients.append(eval(the_data[2:]))
+                if len(clients) == 2:
+                    break
+
+
 while True:
     data, addr = slave.recvfrom(1024)
     if data.decode() == 'done':
@@ -36,14 +48,13 @@ while True:
 
 print('slave is up and running!')
 
-while True:
-    data, addr = slave.recvfrom(1024)
-    if data.decode():
-        clients.append(eval(data.decode()))
-        break
+find_clients()
 
-t1 = threading.Thread(target=receive)
-t2 = threading.Thread(target=broadcast)
+#t1 = threading.Thread(target=find_clients)
+t2 = threading.Thread(target=receive)
+t3 = threading.Thread(target=broadcast)
 
-t1.start()
+#t1.start()
 t2.start()
+t3.start()
+
