@@ -1,6 +1,8 @@
 import arcade
 import time
 from random import choice
+
+import settings
 from settings import *
 from player import Player
 from enemy import Enemy
@@ -20,7 +22,7 @@ class MyGame(arcade.Window):
         self.scene = arcade.Scene()
         self.physics_engine = None
         self.camera = arcade.Camera(self.width, self.height)
-        self.tile_map = arcade.load_tilemap(TILE_MAP, TILE_SIZE, LAYER_OPTIONS)
+        self.tile_map = arcade.load_tilemap(settings.TILE_MAP, settings.TILE_SIZE, settings.LAYER_OPTIONS)
         self.physics_engine = None
 
         # player

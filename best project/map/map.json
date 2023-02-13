@@ -795,20 +795,20 @@
          "source":"..\/tsx\/Floor.tsx"
         }, 
         {
-         "firstgid":1,
-         "source":"..\/tsx\/details.tsx"
-        }, 
-        {
-         "firstgid":1,
-         "source":"..\/tsx\/ground.tsx"
-        }, 
-        {
-         "firstgid":1,
-         "source":"..\/Tiled\/data\/tsx\/Floor.tsx"
-        }, 
-        {
          "firstgid":551,
-         "source":"..\/Tiled\/data\/tsx\/details.tsx"
+         "source":"..\/tsx\/details.tsx"
+        },
+        {
+         "firstgid":631,
+         "source":"..\/tsx\/ground.tsx"
+        },
+        {
+         "firstgid":631,
+         "source":"..\/..\/..\/..\/Users\/\u05d0\u05d9\u05ea\u05d9\/AppData\/Roaming\/Tiled\/data\/tsx\/Floor.tsx"
+        },
+        {
+         "firstgid":1181,
+         "source":"..\/..\/..\/..\/Users\/\u05d0\u05d9\u05ea\u05d9\/AppData\/Roaming\/Tiled\/data\/tsx\/details.tsx"
         }],
  "tilewidth":64,
  "type":"map",
