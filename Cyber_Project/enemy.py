@@ -97,22 +97,5 @@ class Enemy(arcade.Sprite):
         else:
             self.status = 'idle'
 
-    def e_move(self):
-        self.change_x = self.get_player_distance_direction()[1][0]
-        self.change_y = self.get_player_distance_direction()[1][1]
-
-        self.center_x += self.change_x
-        self.center_y += self.change_y
-
-        # Check for out-of-bounds
-        if self.left < 0:
-            self.left = 0
-
-        if self.bottom < 0:
-            self.bottom = 0
-
     def e_update(self):
         self.animation()
-        self.get_status()
-        if self.status == 'move':
-            self.e_move()

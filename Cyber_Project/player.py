@@ -9,6 +9,9 @@ class Player(arcade.Sprite):
         self.filename = filename
         self.scale = scale
         self.layer = 'player'
+        self.pos_changed = False
+        self.health_changed = False
+        self.status_changed = False
 
         # Movement
         self.auto_movement = False
@@ -19,7 +22,7 @@ class Player(arcade.Sprite):
         # Animate
         self.texture = arcade.load_texture(filename)
         self.cur_texture_index = 0
-        self.status = 'down'
+        self.status = 'down_idle'
         self.animation_time = time.time()
 
         # Stats
@@ -73,13 +76,14 @@ class Player(arcade.Sprite):
             self.texture = arcade.load_texture(path + player_animations[self.status][self.cur_texture_index])
 
     def get_status(self):
-        if self.change_x > 0:
+        self.status_changed = True
+        if self.change_x > 0 and self.status != 'right':
             self.status = 'right'
-        elif self.change_x < 0:
+        elif self.change_x < 0 and self.status != 'left':
             self.status = 'left'
-        elif self.change_y > 0:
+        elif self.change_y > 0 and self.status != 'up':
             self.status = 'up'
-        elif self.change_y < 0:
+        elif self.change_y < 0 and self.status != 'down':
             self.status = 'down'
         elif 'idle' not in self.status and 'attack' not in self.status:
             self.status = self.status + '_idle'
@@ -91,9 +95,10 @@ class Player(arcade.Sprite):
                     self.status = self.status.replace('_idle', '_attack')
                 else:
                     self.status = self.status + '_attack'
+        elif 'attack' in self.status:
+            self.status = self.status.replace('_attack', '')
         else:
-            if 'attack' in self.status:
-                self.status = self.status.replace('_attack', '')
+            self.status_changed = False
 
     def energy_recovery(self):
         if self.energy < self.stats['energy']:
@@ -105,15 +110,10 @@ class Player(arcade.Sprite):
         self.center_x += self.change_x
         self.center_y += self.change_y
 
-        # Check for out-of-bounds
-        if self.left < 0:
-            self.left = 0
-
-        if self.bottom < 0:
-            self.bottom = 0
-
     def update(self):
         self.animation()
         self.energy_recovery()
         if not self.attacking and not self.magicing:
             self.player_move()
+            if self.change_x == 0 and self.change_y == 0:
+                self.pos_changed = False

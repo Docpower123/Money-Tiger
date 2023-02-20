@@ -38,6 +38,7 @@ class MyGame(arcade.Window):
         self.scene = arcade.Scene()
         self.camera = arcade.Camera(self.width, self.height)
         self.tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
+        print("map is good")
 
         # My Player
         self.player = Player(PLAYER_IMAGE, SPRITE_SCALING)
@@ -84,7 +85,11 @@ class MyGame(arcade.Window):
         self.draw_enemies()
 
         # Physics :(
-        self.player_physics_engine = arcade.PhysicsEngineSimple(self.player, walls=self.scene[LAYER_NAME_BARRIER])
+        player_collisions = self.scene[LAYER_NAME_BARRIER]
+        for player in self.player_list:
+            if player in player_collisions: continue
+            player_collisions.append(player)
+        self.player_physics_engine = arcade.PhysicsEngineSimple(self.player, walls=player_collisions)
 
     def on_draw(self):
         # Clear the screen to the background color
@@ -292,7 +297,6 @@ class MyGame(arcade.Window):
             for monster in self.tile_map.sprite_lists[monster_data['layer']]:
                 enemy = Enemy(monster_data['filename'], ENTITY_SIZE, monster_data['layer'], self.player,
                               self.player_list, self.enemies_number)
-                enemy.center_x, enemy.center_y = monster.center_x, monster.center_y
 
                 self.enemies_number += 1
                 self.enemies_list.append(enemy)
@@ -302,8 +306,6 @@ class MyGame(arcade.Window):
         # physics
         for monster in self.enemies_list:
             enemies_collision = self.scene[LAYER_NAME_BARRIER]
-            if self.player not in enemies_collision:
-                enemies_collision.append(self.player)
             for other_enemy in self.enemies_list:
                 if other_enemy == monster: continue
                 if other_enemy in enemies_collision: continue
@@ -383,10 +385,9 @@ class MyGame(arcade.Window):
         monster.change_x, monster.change_y = monster.movement_options[0]
 
     def damage_enemies(self):
-        for monster in self.enemies_list:
+        for index, monster in enumerate(self.enemies_list):
             if arcade.check_for_collision(self.player.current_attack, monster):
-                monster.health -= self.player.stats['attack']
-
+                game.sendto(f"{NAME},HURT,{index},{self.player.stats['attack']}".encode(), Server_ADDR)
                 if self.player.current_attack.direction == 'up':
                     direction = (0, 1)
                 elif self.player.current_attack.direction == 'down':
@@ -395,8 +396,6 @@ class MyGame(arcade.Window):
                     direction = (1, 0)
                 else:
                     direction = (-1, 0)
-                monster.center_x += direction[0] * 64
-                monster.center_y += direction[1] * 64
 
     # ------------------ attack! ------------------
 
@@ -419,8 +418,10 @@ class MyGame(arcade.Window):
                 if monster.status != 'attack' or monster.attacked != self.player:
                     continue
                 elif self.player.health - enemy_data[monster.name]['damage'] <= 0:
+                    self.player.health_changed = True
                     self.player.health = 0
                 elif self.player.health > 0:
+                    self.player.health_changed = True
                     self.player.health -= enemy_data[monster.name]['damage']
                 else:
                     self.player.health = 0
@@ -493,8 +494,12 @@ class MyGame(arcade.Window):
 
     def send_stuff(self):
         # PSS
-        message = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
-        game.sendto(message.encode(), Server_ADDR)
+        game.sendto(
+            f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'.encode(),
+            Server_ADDR)
+        self.player.health_changed = False
+        self.player.pos_changed = False
+        self.player.status_changed = False
 
     def on_update(self, delta_time):
         # Screen
@@ -519,7 +524,6 @@ class MyGame(arcade.Window):
         for physics in self.enemies_physics:
             physics.update()
         self.enemies_update()
-        self.revive_enemies()
 
         # Receive info
         self.send_stuff()
@@ -527,8 +531,8 @@ class MyGame(arcade.Window):
             data, addr = game.recvfrom(1024)
             if data.decode():
                 name = data.decode().split(',')[0]
-
                 type = data.decode().split(',')[1]
+
                 if type == 'PSS':
                     data_list = data.decode().split(',')
                     # Players
@@ -549,8 +553,10 @@ class MyGame(arcade.Window):
                     data_list = data.decode().split(',')
                     for enemy in self.enemies_list:
                         cords = float(data_list[i][1:]), float(data_list[i+1][1:data_list[i+1].find(')')])
+                        health = int(float(data_list[i + 2]))
                         enemy.center_x, enemy.center_y = cords
-                        i += 2
+                        enemy.health = health
+                        i += 3
 
                 elif type == 'TDROP':
                     self.drops_number += 1
