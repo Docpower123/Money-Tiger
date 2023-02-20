@@ -1,6 +1,6 @@
 import os.path
 
-IP = '192.168.173.20'
+IP = '192.168.68.112'
 
 # Load Balancer
 LB_IP = IP
@@ -51,10 +51,10 @@ player_animations = {'up': ['up_0.png', 'up_1.png', 'up_2.png', 'up_3.png'],
 
 # enemy
 ENEMY_PATH = './graphic/monsters/'
-enemy_data = {'Squid': {'health': 100, 'layer': 'Squid', 'damage': 20, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Squid/idle/0.png', 'attack_radius': 120, 'notice_radius': 360},
-              'Bamboo': {'health': 70, 'layer': 'Bamboo', 'damage': 6, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Bamboo/idle/0.png', 'attack_radius': 120, 'notice_radius': 300},
+enemy_data = {'Squid': {'health': 100, 'layer': 'Squid', 'damage': 20, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Squid/idle/0.png', 'attack_radius': 75, 'notice_radius': 360},
+              'Bamboo': {'health': 70, 'layer': 'Bamboo', 'damage': 6, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Bamboo/idle/0.png', 'attack_radius': 75, 'notice_radius': 300},
               'Raccoon': {'health': 300, 'layer': 'Raccoon', 'damage': 40, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Raccoon/idle/0.png', 'attack_radius': 180, 'notice_radius': 400},
-              'Spirit': {'health': 100, 'layer': 'Spirit', 'damage': 8, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Spirit/idle/0.png', 'attack_radius': 120, 'notice_radius': 350}}
+              'Spirit': {'health': 100, 'layer': 'Spirit', 'damage': 8, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Spirit/idle/0.png', 'attack_radius': 130, 'notice_radius': 350}}
 raccoon_animations = {'attack': ['0.png', '1.png', '2.png', '3.png'],
                       'idle': ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png'],
                       'move': ['0.png', '1.png', '2.png', '3.png', '4.png']}

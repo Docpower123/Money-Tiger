@@ -54,13 +54,14 @@ while True:
 # players join during game
 
 # ------------------- what we have -------------------
-# synchronized movement
+# synchronized movement if monster.status != 'attack' or monster.attacked != self.player:
 # synchronized animation
 # synchronized health
 # synchronized drops
 
 # Structure: (USERNAME,TYPE,DATA)
 # Types:
-    # PSS - POSITION (movement) STATUS (animation) STATS (health) - DATA=player(x,y,status,health)+enemies(x,y,status,health)
+    # PSS - PLAYER POSITION (movement) STATUS (animation) STATS (health) - DATA=(x,y,status,health)
+    # EPOS - ENEMY POSITION (movement) - DATA=(x,y)
     # TDROP - take drops - DATA=(drop_name,x,y, drop_status)
     # PDROP - pick drops - DATA=(drop_name,x,y)

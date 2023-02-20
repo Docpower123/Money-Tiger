@@ -284,11 +284,6 @@ class MyGame(arcade.Window):
         # Move!
         self.player.change_x, self.player.change_y = self.player.movement_options[0]
 
-    def check_if_attacked(self):
-        for monster in self.enemies_list:
-            if monster.attacked == self.player: return True
-        return False
-
     # ------------------ enemies ------------------
 
     def draw_enemies(self):
@@ -421,25 +416,14 @@ class MyGame(arcade.Window):
             self.player.vulnerable = False
             self.player.hurt_time = time.time()
             for monster in self.enemies_list:
-                if monster.status != 'attack':
+                if monster.status != 'attack' or monster.attacked != self.player:
                     continue
-                # non-spirit monsters attack from close
-                elif monster.name != 'Spirit' and arcade.check_for_collision(self.player, monster):
-                    if self.player.health - enemy_data[monster.name]['damage'] <= 0:
-                        self.player.health = 0
-                    elif self.player.health > 0:
-                        self.player.health -= enemy_data[monster.name]['damage']
-                    else:
-                        self.player.health = 0
-
-                # Spirit attack from far
-                elif monster.name == 'Spirit':
-                    if self.player.health - enemy_data[monster.name]['damage'] <= 0:
-                        self.player.health = 0
-                    elif self.player.health > 0:
-                        self.player.health -= enemy_data[monster.name]['damage']
-                    else:
-                        self.player.health = 0
+                elif self.player.health - enemy_data[monster.name]['damage'] <= 0:
+                    self.player.health = 0
+                elif self.player.health > 0:
+                    self.player.health -= enemy_data[monster.name]['damage']
+                else:
+                    self.player.health = 0
 
     # ------------------ magic ------------------
 
@@ -509,13 +493,8 @@ class MyGame(arcade.Window):
 
     def send_stuff(self):
         # PSS
-        enemies_message = ''
-        for monster in self.enemies_list:
-            enemies_message += f',{monster.center_x},{monster.center_y},{monster.status},{monster.health}'
-        player_message = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
-
-        whole_message = player_message + enemies_message
-        game.sendto(whole_message.encode(), Server_ADDR)
+        message = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
+        game.sendto(message.encode(), Server_ADDR)
 
     def on_update(self, delta_time):
         # Screen
@@ -530,8 +509,7 @@ class MyGame(arcade.Window):
             self.player_physics_engine.update()
         if self.player.auto_movement:
             self.auto_move()
-        if self.check_if_attacked():
-            self.damage_player()
+        self.damage_player()
         self.player.get_status()
         self.player.update()
         if len(self.player.items.keys()) < UI_SIZE:
@@ -564,21 +542,15 @@ class MyGame(arcade.Window):
                     health = data_list[5]
                     if self.player1.health != health:
                         self.player1.health = health
-
-                    # Enemies
-                    for enemy in self.enemies_list:
-                        for i in range(6, len(data_list)-6+1, 4):
-                            cords = float(data_list[i]), float(data_list[i + 1])
-                            status = data_list[i + 2]
-                            health = int(float(data_list[i + 3]))
-                            if not enemy.collides_with_point(cords):  # enemy don't have enough time to get out of tile
-                                continue
-                            enemy.center_x, enemy.center_y = cords
-                            if enemy.health > health:  # health can only be reduced
-                                enemy.health = health
-                            if enemy.status != status:
-                                enemy.status = status
                     break
+
+                elif type == 'EPOS':
+                    i = 2
+                    data_list = data.decode().split(',')
+                    for enemy in self.enemies_list:
+                        cords = float(data_list[i][1:]), float(data_list[i+1][1:data_list[i+1].find(')')])
+                        enemy.center_x, enemy.center_y = cords
+                        i += 2
 
                 elif type == 'TDROP':
                     self.drops_number += 1
