@@ -1,6 +1,6 @@
 import os.path
 
-IP = '192.168.45.35'
+IP = '192.168.173.20'
 
 # Load Balancer
 LB_IP = IP
@@ -24,7 +24,7 @@ SCREEN_COLOR = (113, 221, 238)
 SCREEN_WIDTH = 650
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
-TILED_MAP = '.\\map\\map.json'
+TILED_MAP = './map/map.json'
 
 # music!
 DEFAULT_MUSIC = './audio/never.mp3'

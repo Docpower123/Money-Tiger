@@ -792,23 +792,23 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/..\/best project\/tsx\/Floor.tsx"
+         "source":"./tsx/Floor.tsx"
         }, 
         {
          "firstgid":551,
-         "source":"..\/..\/best project\/tsx\/details.tsx"
+         "source":"./tsx/details.tsx"
         }, 
         {
          "firstgid":631,
-         "source":"..\/..\/best project\/tsx\/ground.tsx"
+         "source":"./tsx/ground.tsx"
         }, 
         {
          "firstgid":631,
-         "source":"..\/..\/Tiled\/data\/tsx\/Floor.tsx"
+         "source":"./tsx/Floor.tsx"
         },
         {
          "firstgid":1181,
-         "source":"..\/..\/Tiled\/data\/tsx\/details.tsx"
+         "source":"./tsx/details.tsx"
         }],
  "tilewidth":64,
  "type":"map",

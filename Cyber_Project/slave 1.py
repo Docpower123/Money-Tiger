@@ -19,7 +19,7 @@ slave.sendto(f'{ADDR}'.encode(), (LB_IP, LB_PORT))
 
 # Screen
 scene = arcade.Scene()
-tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
+#tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
 
 # Enemies
 enemies_list = []
