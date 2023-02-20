@@ -1,0 +1,94 @@
+{
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "file.lastUsedOpenFilter": "כל הקבצים (*)",
+    "fileStates": {
+        "C:/Networks/work/best project/tmx/[A]Flower_pipo.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Networks/work/best project/tmx/[A]Grass_pipo.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Networks/work/best project/tmx/[A]WaterFall_pipo.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Networks/work/best project/tmx/[A]Water_pipo.tsx": {
+            "scaleInDock": 1
+        },
+        "C:/Networks/work/best project/tmx/project.tmx": {
+            "scale": 0.25,
+            "selectedLayer": 9,
+            "viewCenter": {
+                "x": 1814,
+                "y": 4730
+            }
+        },
+        "C:/Networks/work/best project/tmx/samplemap.tmx": {
+            "scale": 0.33,
+            "selectedLayer": 6,
+            "viewCenter": {
+                "x": 1031.8181818181818,
+                "y": -237.87878787878788
+            }
+        },
+        "C:/Networks/work/best project/tmx/samplemap.tmx#[Base]BaseChip_pipo": {
+            "scaleInDock": 1
+        },
+        "C:/Networks/work/best project/tsx/Floor.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1
+        },
+        "C:/Networks/work/best project/tsx/details.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1
+        },
+        "C:/Networks/work/best project/tsx/ground.tsx": {
+            "scaleInDock": 1
+        },
+        "data/tmx/project.tmx": {
+            "scale": 0.75,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 2322,
+                "y": 2002
+            }
+        },
+        "data/tsx/Floor.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 0.5,
+            "scaleInEditor": 1
+        },
+        "data/tsx/details.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "data/tsx/ground.tsx": {
+            "scaleInDock": 0.0625,
+            "scaleInEditor": 0.125
+        }
+    },
+    "last.exportedFilePath": "C:/Networks/work/best project/map",
+    "last.externalTilesetPath": "C:/Users/איתי/AppData/Roaming/Tiled/graphics",
+    "last.imagePath": "C:/Users/איתי/AppData/Roaming/Tiled/graphics",
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
+    "map.lastUsedFormat": "tmx",
+    "openFiles": [
+    ],
+    "project": "",
+    "recentFiles": [
+        "data/tmx/project.tmx",
+        "data/tsx/Floor.tsx",
+        "data/tsx/details.tsx",
+        "data/tsx/ground.tsx",
+        "C:/Networks/work/best project/tmx/project.tmx",
+        "C:/Networks/work/best project/tmx/samplemap.tmx"
+    ],
+    "tileset.lastUsedFilter": "Tiled tileset files (*.tsx *.xml)",
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 64,
+        "width": 64
+    }
+}
