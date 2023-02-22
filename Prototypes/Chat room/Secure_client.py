@@ -1,66 +1,51 @@
 import socket
-import json
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization, hashes
+import hmac
+import hashlib
+from cryptography.hazmat.primitives.asymmetric import padding, utils
+from cryptography.hazmat.primitives import serialization
 
-# Generate client RSA key pair
-client_private_key = rsa.generate_private_key(
-    public_exponent=65537,
-    key_size=2048
+# Set up the UDP socket
+HOST = 'localhost'
+PORT = 5002
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# Load the private key from file
+with open('private.pem', 'rb') as f:
+    private_key = serialization.load_pem_private_key(f.read(), password=None)
+
+# Define a message to send to the server
+message = 'Hello, server! This is a test message.'.encode()
+
+# Compute the HMAC digest of the message
+digest = hmac.new(SECRET_KEY, message, hashlib.sha256).digest()
+
+# Sign the message using the private key
+signature = private_key.sign(
+    message,
+    padding.PKCS1v15(),
+    utils.Prehashed(hashes.SHA256())
 )
-client_public_key = client_private_key.public_key()
 
-# Load server public key from file
-with open("public.pem", "rb") as key_file:
-    server_public_key = serialization.load_pem_public_key(
-        key_file.read(),
-    )
+# Concatenate the HMAC digest, message, and signature into a single message
+data = digest + message + signature
 
-# Set up socket
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('localhost', 5001))
+# Send the message to the server
+s.sendto(data, (HOST, PORT))
 
-# Send message to server
-message = {
-    'public_key': client_public_key.public_bytes(
-        encoding=serialization.Encoding.DER,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo
-    ).hex(),
-    'data': "Hello, world!",
-    'signature': client_private_key.sign(
-        "Hello, world!".encode(),
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH
-        ),
-        hashes.SHA256()
-    ).hex()
-}
-print(f"Sending message: {message}")
-data = json.dumps(message).encode()
-client_socket.send(data)
+# Receive a response from the server
+data, addr = s.recvfrom(1024)
 
-# Receive challenge from server
-data = client_socket.recv(1024)
-print(f"Received data: {data}")
-message = json.loads(data)
-challenge = message['challenge']
-print(f"Received challenge: {challenge}")
+# Extract the HMAC digest and message from the received data
+received_digest = data[:32]
+message = data[32:]
 
-# Send response to server
-response = client_private_key.encrypt(
-    challenge.encode(),
-    padding.OAEP(
-        mgf=padding.MGF1(algorithm=hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None
-    )
-).hex()
-message = {
-    'response': response
-}
-print(f"Sending response: {message}")
-client_socket.send(json.dumps(message).encode())
+# Compute the HMAC digest of the message
+computed_digest = hmac.new(SECRET_KEY, message, hashlib.sha256).digest()
 
-# Close connection
-client_socket.close()
+# Verify that the received digest matches the computed digest
+if received_digest == computed_digest:
+    # If the digests match, print the response from the server
+    print(f'Response from server: {message.decode()}')
+else:
+    # If the digests don't match, print an error message
+    print('Invalid response received from server')
