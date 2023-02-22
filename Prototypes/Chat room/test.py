@@ -7,7 +7,6 @@ with open('public.pem', 'rb') as f:  # Open file in binary mode
 # Load the public key from the bytes using the PEM format
 public_key = serialization.load_pem_public_key(key_bytes)
 
-
 def encyrpt_data(info):
     # Encrypt data using the public key
     data = info.encode()
