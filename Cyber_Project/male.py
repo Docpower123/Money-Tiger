@@ -34,11 +34,13 @@ class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
         arcade.set_background_color(SCREEN_COLOR)
+
         # Screen
         self.scene = arcade.Scene()
         self.camera = arcade.Camera(self.width, self.height)
         self.tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
         print("map is good")
+        self.pss_msg = []
 
         # My Player
         self.player = Player(PLAYER_IMAGE, SPRITE_SCALING)
@@ -289,6 +291,11 @@ class MyGame(arcade.Window):
         # Move!
         self.player.change_x, self.player.change_y = self.player.movement_options[0]
 
+    def check_if_attacked(self):
+        for monster in self.enemies_list:
+            if monster.attacked == self.player: return True
+        return False
+
     # ------------------ enemies ------------------
 
     def draw_enemies(self):
@@ -349,17 +356,10 @@ class MyGame(arcade.Window):
             for monster in self.enemies_list:
                 # update
                 monster.e_update()
-                if monster.status == 'idle':
-                    self.enemies_auto_move(monster)
                 # death!
                 if monster.health <= 0:
                     # drop
                     self.enemy_create_drop(monster)
-                    # dead
-                    monster.kill()
-                    self.enemies_number -= 1
-                    self.enemies_list.remove(monster)
-                    self.dead_enemies_list.append(monster)
 
     def enemies_auto_move(self, monster):
         if time.time() - monster.auto_movement_time >= 0.4:
@@ -418,10 +418,8 @@ class MyGame(arcade.Window):
                 if monster.status != 'attack' or monster.attacked != self.player:
                     continue
                 elif self.player.health - enemy_data[monster.name]['damage'] <= 0:
-                    self.player.health_changed = True
                     self.player.health = 0
                 elif self.player.health > 0:
-                    self.player.health_changed = True
                     self.player.health -= enemy_data[monster.name]['damage']
                 else:
                     self.player.health = 0
@@ -492,14 +490,37 @@ class MyGame(arcade.Window):
 
     # ------------------ update ------------------
 
+    def read_pss_msg(self):
+        # Players
+        cords = self.pss_msg[2], self.pss_msg[3]
+        if int(float(cords[0])) != self.player1.center_x or int(float(cords[1])) != self.player1.center_y:
+            self.player1.center_x = int(float(cords[0]))
+            self.player1.center_y = int(float(cords[1]))
+        status = self.pss_msg[4]
+        if self.player1.status != status:
+            self.player1.status = status
+        health = self.pss_msg[5]
+        if self.player1.health != health:
+            self.player1.health = health
+
+        # Enemies
+        if len(self.pss_msg) < 7 or not self.enemies_list: return
+        index = 6
+        for enemy in self.enemies_list:
+            cords = float(self.pss_msg[index][1:]), float(self.pss_msg[index + 1][1:self.pss_msg[index + 1].find(')')])
+            status = self.pss_msg[index + 2]
+            health = int(float(self.pss_msg[index + 3]))
+            enemy.status = status
+            enemy.center_x, enemy.center_y = cords
+            enemy.health = health
+            if index + 4 > len(self.pss_msg) - 1: return
+            index += 4
+
     def send_stuff(self):
         # PSS
         game.sendto(
             f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'.encode(),
             Server_ADDR)
-        self.player.health_changed = False
-        self.player.pos_changed = False
-        self.player.status_changed = False
 
     def on_update(self, delta_time):
         # Screen
@@ -514,7 +535,8 @@ class MyGame(arcade.Window):
             self.player_physics_engine.update()
         if self.player.auto_movement:
             self.auto_move()
-        self.damage_player()
+        if self.check_if_attacked():
+            self.damage_player()
         self.player.get_status()
         self.player.update()
         if len(self.player.items.keys()) < UI_SIZE:
@@ -526,6 +548,8 @@ class MyGame(arcade.Window):
         self.enemies_update()
 
         # Receive info
+        if self.pss_msg:
+            self.read_pss_msg()
         self.send_stuff()
         while True:
             data, addr = game.recvfrom(1024)
@@ -534,29 +558,8 @@ class MyGame(arcade.Window):
                 type = data.decode().split(',')[1]
 
                 if type == 'PSS':
-                    data_list = data.decode().split(',')
-                    # Players
-                    cords = data_list[2], data_list[3]
-                    if int(float(cords[0])) != 0 or int(float(cords[1])) != 0:
-                        self.player1.center_x = int(float(cords[0]))
-                        self.player1.center_y = int(float(cords[1]))
-                    status = data_list[4]
-                    if self.player1.status != status:
-                        self.player1.status = status
-                    health = data_list[5]
-                    if self.player1.health != health:
-                        self.player1.health = health
+                    self.pss_msg = data.decode().split(',')
                     break
-
-                elif type == 'EPOS':
-                    i = 2
-                    data_list = data.decode().split(',')
-                    for enemy in self.enemies_list:
-                        cords = float(data_list[i][1:]), float(data_list[i+1][1:data_list[i+1].find(')')])
-                        health = int(float(data_list[i + 2]))
-                        enemy.center_x, enemy.center_y = cords
-                        enemy.health = health
-                        i += 3
 
                 elif type == 'TDROP':
                     self.drops_number += 1
@@ -584,7 +587,7 @@ class MyGame(arcade.Window):
 
 
 def main():
-    window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, 'MALE')
+    window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT, NAME)
     window.setup()
     arcade.run()
 

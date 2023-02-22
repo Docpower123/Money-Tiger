@@ -9,9 +9,6 @@ class Player(arcade.Sprite):
         self.filename = filename
         self.scale = scale
         self.layer = 'player'
-        self.pos_changed = False
-        self.health_changed = False
-        self.status_changed = False
 
         # Movement
         self.auto_movement = False
@@ -76,7 +73,6 @@ class Player(arcade.Sprite):
             self.texture = arcade.load_texture(path + player_animations[self.status][self.cur_texture_index])
 
     def get_status(self):
-        self.status_changed = True
         if self.change_x > 0 and self.status != 'right':
             self.status = 'right'
         elif self.change_x < 0 and self.status != 'left':
@@ -95,10 +91,9 @@ class Player(arcade.Sprite):
                     self.status = self.status.replace('_idle', '_attack')
                 else:
                     self.status = self.status + '_attack'
-        elif 'attack' in self.status:
-            self.status = self.status.replace('_attack', '')
         else:
-            self.status_changed = False
+            if 'attack' in self.status:
+                self.status = self.status.replace('_attack', '')
 
     def energy_recovery(self):
         if self.energy < self.stats['energy']:
@@ -115,5 +110,3 @@ class Player(arcade.Sprite):
         self.energy_recovery()
         if not self.attacking and not self.magicing:
             self.player_move()
-            if self.change_x == 0 and self.change_y == 0:
-                self.pos_changed = False

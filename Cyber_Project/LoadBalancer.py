@@ -45,23 +45,20 @@ while True:
 
 
 # ------------------- to fix / to add -------------------
-# synchronized enemies - movement and health are shit
 # chat!
 # synchronized pickup of drop sometimes does not work :(
 # synchronized weapons & magic
 # one squid can collide EVERYTHING
-# auto movement do problems
 # players join during game
 
 # ------------------- what we have -------------------
-# synchronized movement if monster.status != 'attack' or monster.attacked != self.player:
+# synchronized enemies
 # synchronized animation
 # synchronized health
 # synchronized drops
 
 # Structure: (USERNAME,TYPE,DATA)
 # Types:
-    # PSS - PLAYER POSITION (movement) STATUS (animation) STATS (health) - DATA=(x,y,status,health)
-    # EPOS - ENEMY POSITION (movement) - DATA=(x,y)
+    # PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health)
     # TDROP - take drops - DATA=(drop_name,x,y, drop_status)
     # PDROP - pick drops - DATA=(drop_name,x,y)
