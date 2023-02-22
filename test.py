@@ -1,7 +1,7 @@
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 
-with open('public.pem', 'rb') as f:  # Open file in binary mode
+with open('Cyber_Project/public.pem', 'rb') as f:  # Open file in binary mode
     key_bytes = f.read()
 
 # Load the public key from the bytes using the PEM format
@@ -23,7 +23,7 @@ def encyrpt_data(info):
 
 def decrypt_data(info):
     # The decryption code should use a private key, not the public key bytes
-    with open('private.pem', 'rb') as f:
+    with open('Cyber_Project/private.pem', 'rb') as f:
         private_key_bytes = f.read()
         private_key = serialization.load_pem_private_key(private_key_bytes, password=None)
     decrypted_data = private_key.decrypt(
