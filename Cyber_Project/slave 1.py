@@ -7,45 +7,6 @@ import threading
 import math
 import time
 import random
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
-from cryptography.hazmat.primitives import serialization, hashes
-
-with open('public.pem', 'rb') as f:  # Open file in binary mode
-    key_bytes = f.read()
-
-# Load the public key from the bytes using the PEM format
-public_key = serialization.load_pem_public_key(key_bytes)
-
-
-def encyrpt_data(info):
-    # Encrypt data using the public key
-    data = info.encode()
-    encrypted_data = public_key.encrypt(
-        data,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    return encrypted_data
-
-
-def decrypt_data(info):
-    # The decryption code should use a private key, not the public key bytes
-    with open('private.pem', 'rb') as f:
-        private_key_bytes = f.read()
-        private_key = serialization.load_pem_private_key(private_key_bytes, password=None)
-    decrypted_data = private_key.decrypt(
-        info,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    return decrypted_data.decode()
-
 
 # parameters for the server to use
 HOST = S1_IP
@@ -161,7 +122,6 @@ def enemies():
         elif status == 'move':
             enemies_cords[index] = e_move(e_pos)
 
-
 # ------------------ server ------------------
 
 
@@ -181,7 +141,7 @@ def receive():
             index = int(message.decode().split(',')[2])
             damage = int(message.decode().split(',')[3])
             enemies_health[index] -= damage
-            enemies_cords[index] = enemies_cords[index][0] - 64, enemies_cords[index][1] - 64
+            enemies_cords[index] = enemies_cords[index][0] - 64,  enemies_cords[index][1] - 64
         # take care of message
         messages.put((message, addr))
 
@@ -204,11 +164,11 @@ def broadcast():
                         enemy_message += f',{cords},{status},{health}'
                         if health <= 0:
                             enemies_cords[index] = (
-                                choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_x,
-                                choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_y)
+                            choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_x,
+                            choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_y)
                             enemies_health[index] = enemy_data[enemies_names[index]]['health']
 
-                    msg = message.decode() + enemy_message
+                    msg = message.decode()+enemy_message
                     slave.sendto(f'{msg}'.encode(), client)
                 else:
                     slave.sendto(f'{message.decode()}'.encode(), client)
@@ -223,7 +183,6 @@ def find_clients():
                 clients.append(eval(the_data[2:]))
                 if len(clients) == 2:
                     break
-
 
 # ------------------ main ------------------
 

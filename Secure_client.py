@@ -11,7 +11,7 @@ client_private_key = rsa.generate_private_key(
 client_public_key = client_private_key.public_key()
 
 # Load server public key from file
-with open("Cyber_Project/Servers/public.pem", "rb") as key_file:
+with open("public.pem", "rb") as key_file:
     server_public_key = serialization.load_pem_public_key(
         key_file.read(),
     )
