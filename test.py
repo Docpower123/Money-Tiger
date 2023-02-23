@@ -1,44 +1,23 @@
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
 
-with open('public.pem', 'rb') as f:  # Open file in binary mode
-    key_bytes = f.read()
+# Generate a new RSA key pair
+private_key = rsa.generate_private_key(
+    public_exponent=65537,
+    key_size=2048
+)
 
-# Load the public key from the bytes using the PEM format
-public_key = serialization.load_pem_public_key(key_bytes)
+# Serialize the private key to a PEM encoded file
+with open("private_key.pem", "wb") as f:
+    f.write(private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    ))
 
-def encyrpt_data(info):
-    # Encrypt data using the public key
-    data = info.encode()
-    encrypted_data = public_key.encrypt(
-        data,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    return encrypted_data
-
-
-def decrypt_data(info):
-    # The decryption code should use a private key, not the public key bytes
-    with open('private.pem', 'rb') as f:
-        private_key_bytes = f.read()
-        private_key = serialization.load_pem_private_key(private_key_bytes, password=None)
-    decrypted_data = private_key.decrypt(
-        info,
-        padding.OAEP(
-            mgf=padding.MGF1(algorithm=hashes.SHA256()),
-            algorithm=hashes.SHA256(),
-            label=None
-        )
-    )
-    return decrypted_data.decode()
-
-
-encrypted_data = encyrpt_data('hoiiii')
-print(f"Encrypted data: {encrypted_data}")
-
-decrypted_data = decrypt_data(encrypted_data)
-print(f"Decrypted data: {decrypted_data}")
+# Serialize the public key to a PEM encoded file
+with open("public_key.pem", "wb") as f:
+    f.write(private_key.public_key().public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ))

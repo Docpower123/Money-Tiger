@@ -1,53 +1,62 @@
 import socket
-import hmac
-import hashlib
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization, hashes
 
-# Set up the UDP socket
-HOST = 'localhost'
-PORT = 5002
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# Load the private key from the PEM encoded file
+with open("private_key.pem", "rb") as f:
+    private_key = serialization.load_pem_private_key(
+        f.read(),
+        password=None
+    )
 
-# Define the shared secret key
-SECRET_KEY = b'my_secret_key'
+# Load the public key from the PEM encoded file
+with open("public_key.pem", "rb") as f:
+    public_key = serialization.load_pem_public_key(f.read())
 
-# Define the message to send
-message = 'Hello, server!'.encode()
+# Create a UDP socket and connect it to the server
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+client_socket.connect(('localhost', 1234))
 
+# Send an encrypted message to the server
+message = b"Hello, world!"
+encrypted_message = public_key.encrypt(
+    message,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    )
+)
+signature = private_key.sign(
+    encrypted_message,
+    padding.PKCS1v15(),
+    hashes.SHA256()
+)
+client_socket.send(signature + encrypted_message)
 
-def auth(message):
-    # Compute the HMAC digest of the message
-    digest = hmac.new(SECRET_KEY, message, hashlib.sha256).digest()
-    return digest + message
+# Receive and decrypt the response from the server
+data = client_socket.recv(1024)
+signature, encrypted_response = data[:256], data[256:]
+try:
+    public_key.verify(
+        signature,
+        encrypted_response,
+        padding.PKCS1v15(),
+        hashes.SHA256()
+    )
+except:
+    print("Invalid signature")
+    client_socket.close()
+    exit()
+decrypted_response = private_key.decrypt(
+    encrypted_response,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    )
+)
+print("Received response:", decrypted_response.decode())
 
-
-newtext = auth(message)
-# Send the message and HMAC digest to the server
-s.sendto(newtext, (HOST, PORT))
-print(f'Sent message to server: {message.decode()}')
-
-# Receive the response from the server
-response, addr = s.recvfrom(1024)
-
-# Verify the HMAC digest of the response
-received_digest = response[:32]
-response_message = response[32:]
-computed_digest = hmac.new(SECRET_KEY, response_message, hashlib.sha256).digest()
-
-if received_digest == computed_digest:
-    # If the digests match, print the response
-    print(f'Received response from server: {response_message.decode("latin-1")}')
-else:
-    # If the digests don't match, print an error message
-    print('Invalid response received from server')
-
-# Send an incorrect message to the server
-s.sendto(b'Incorrect message', (HOST, PORT))
-
-# Receive the response from the server
-response, addr = s.recvfrom(1024)
-
-# Check if the client is blacklisted
-if response == b'You have been blacklisted':
-    print(f'Blacklisted by server')
-else:
-    print(f'Received response from server: {response.decode("latin-1")}')
+# Close the socket
+client_socket.close()

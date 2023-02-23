@@ -1,46 +1,73 @@
 import socket
-import hmac
-import hashlib
+import threading
+from cryptography.hazmat.primitives.asymmetric import padding, utils
+from cryptography.hazmat.primitives import serialization, hashes
 
-# Set up the UDP socket
-HOST = 'localhost'
-PORT = 5002
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.bind((HOST, PORT))
-print(f'Server listening on {HOST}:{PORT}')
+# Load the private key from the PEM encoded file
+with open("private_key.pem", "rb") as f:
+    private_key = serialization.load_pem_private_key(
+        f.read(),
+        password=None
+    )
 
-# Define the shared secret key
-SECRET_KEY = b'my_secret_key'
+# Load the public key from the PEM encoded file
+with open("public_key.pem", "rb") as f:
+    public_key = serialization.load_pem_public_key(f.read())
 
-# Define a blacklist of clients by their IP addresses
-BLACKLIST = set()
+# Create a UDP socket and bind it to a port
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_socket.bind(('localhost', 1234))
 
-while True:
-    print(BLACKLIST)
-    # Receive a message from the client
-    data, addr = s.recvfrom(1024)
+# Define a function to handle incoming messages
+def handle_message(data, address):
+    # Verify the message signature using the public key
+    signature, message = data[:256], data[256:]
+    try:
+        public_key.verify(
+            signature,
+            message,
+            padding.PKCS1v15(),
+            utils.Prehashed(hashes.SHA256())
+        )
+    except:
+        print("Invalid signature")
+        return
 
-    # Check if the client is blacklisted
-    if addr in BLACKLIST:
-        print(f'{addr} is blacklisted')
-        continue
+    # Decrypt the message using the private key
+    decrypted_message = private_key.decrypt(
+        message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
 
-    # Extract the HMAC digest and message from the received data
-    received_digest = data[:32]
-    message = data[32:]
+    # Do something with the decrypted message
+    print("Received message:", decrypted_message.decode())
 
-    # Compute the HMAC digest of the message
-    computed_digest = hmac.new(SECRET_KEY, message, hashlib.sha256).digest()
+# Define a function to receive incoming messages and handle them in a separate thread
+def receive_messages():
+    while True:
+        data, address = server_socket.recvfrom(1024)
+        threading.Thread(target=handle_message, args=(data, address)).start()
 
-    # Verify that the received digest matches the computed digest
-    if received_digest == computed_digest:
-        # If the digests match, send a response back to the client
-        response = f'Received {message.decode()} from {addr}'.encode()
-        response_digest = hmac.new(SECRET_KEY, response, hashlib.sha256).digest()
-        s.sendto(response_digest + response, addr)
-        print(f'Sent response to {addr}: {response.decode()}')
-    else:
-        # If the digests don't match, blacklist the client and send a response
-        print(f'Invalid message received from {addr}')
-        BLACKLIST.add(addr)
-        s.sendto(b'You have been blacklisted', addr)
+# Start receiving messages in a separate thread
+threading.Thread(target=receive_messages).start()
+
+# Send an encrypted message to the server
+message = b"Hello, world!"
+encrypted_message = public_key.encrypt(
+    message,
+    padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    )
+)
+signature = private_key.sign(
+    encrypted_message,
+    padding.PKCS1v15(),
+    hashes.SHA256()
+)
+server_socket.sendto(signature + encrypted_message, ('localhost', 1234))
