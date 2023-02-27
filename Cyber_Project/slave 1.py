@@ -29,7 +29,10 @@ enemies_health = []
 enemies_movement_options = []
 auto_move_time = []
 auto_move_time2 = []
-tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
+layer_options = LAYER_OPTIONS = {
+    LAYER_NAME_BARRIER: {"use_spatial_hash": True},
+    LAYER_NAME_ENTITY: {"use_spatial_hash": True}}
+tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=layer_options)
 
 
 # ------------------ enemies ------------------
@@ -164,8 +167,8 @@ def broadcast():
                         enemy_message += f',{cords},{status},{health}'
                         if health <= 0:
                             enemies_cords[index] = (
-                            choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_x,
-                            choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_y)
+                            choice(tile_map.sprite_lists[LAYER_NAME_ENTITY]).center_x,
+                            choice(tile_map.sprite_lists[LAYER_NAME_ENTITY]).center_y)
                             enemies_health[index] = enemy_data[enemies_names[index]]['health']
 
                     msg = message.decode()+enemy_message

@@ -24,7 +24,7 @@ SCREEN_COLOR = (113, 221, 238)
 SCREEN_WIDTH = 650
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
-TILED_MAP = './map/map.json'
+TILED_MAP = './map/bestmap.json'
 
 # music!
 DEFAULT_MUSIC = './audio/never.mp3'
@@ -97,17 +97,11 @@ TILE_SIZE = 0.7
 
 # TileMap
 LAYER_NAME_GROUND = "Ground"
-LAYER_NAME_PLANTS = "Plants"
 LAYER_NAME_BARRIER = "Barrier"
-LAYER_NAME_PLAYER = "Player"
-LAYER_NAME_WEAPON = "Weapon"
-LAYER_NAME_MAGIC = "Magic"
-LAYER_NAME_DROP = "Drop"
-LAYER_NAME_ENEMY = "Enemy"
+LAYER_NAME_ITEM = "Item"
+LAYER_NAME_ENTITY = "Entity"
 LAYER_OPTIONS = {
     LAYER_NAME_GROUND: {"use_spatial_hash": True},
-    LAYER_NAME_PLANTS: {"use_spatial_hash": True},
     LAYER_NAME_BARRIER: {"use_spatial_hash": True},
-    LAYER_NAME_WEAPON: {"use_spatial_hash": True},
-    LAYER_NAME_MAGIC: {"use_spatial_hash": True},
-    LAYER_NAME_DROP: {"use_spatial_hash": True}}
+    LAYER_NAME_ITEM: {"use_spatial_hash": True},
+    LAYER_NAME_ENTITY: {"use_spatial_hash": True}}
