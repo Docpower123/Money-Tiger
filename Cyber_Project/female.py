@@ -76,8 +76,8 @@ class MyGame(arcade.Window):
             arcade.set_background_color(self.tile_map.background_color)
 
         # Player
-        player_x = self.tile_map.sprite_lists[LAYER_NAME_ENTITY][0].center_x
-        player_y = self.tile_map.sprite_lists[LAYER_NAME_ENTITY][0].center_y
+        player_x = self.tile_map.sprite_lists[LAYER_NAME_PLAYER][0].center_x
+        player_y = self.tile_map.sprite_lists[LAYER_NAME_PLAYER][0].center_y
         self.player.center_x, self.player.center_y = (player_x+64, player_y+64)
         self.player_list.append(self.player1)
         self.scene.add_sprite_list('Players', False, self.player_list)
@@ -308,7 +308,7 @@ class MyGame(arcade.Window):
                 self.enemies_number += 1
                 self.enemies_list.append(enemy)
 
-                self.scene.add_sprite(LAYER_NAME_ENTITY, enemy)
+                self.scene.add_sprite(LAYER_NAME_ENEMY, enemy)
 
         # physics
         for monster in self.enemies_list:
@@ -329,7 +329,7 @@ class MyGame(arcade.Window):
             monster.center_x = choice(self.tile_map.sprite_lists[enemy_data[monster.name]['layer']]).center_x
             monster.center_y = choice(self.tile_map.sprite_lists[enemy_data[monster.name]['layer']]).center_y
             monster.health = enemy_data[monster.name]['health']
-            self.scene.add_sprite(LAYER_NAME_ENTITY, monster)
+            self.scene.add_sprite(LAYER_NAME_ENEMY, monster)
 
     def enemy_create_drop(self, monster):
         # drop 1
@@ -339,7 +339,7 @@ class MyGame(arcade.Window):
         drop1 = Drop(drop_name, drop_pos, monster.status, self.drops_number)
         game.sendto(f'{NAME},TDROP,{drop_name},{drop_pos},{monster.status}'.encode(), Server_ADDR)
         self.drops_list.append(drop1)
-        self.scene.add_sprite(LAYER_NAME_ITEM, drop1)
+        self.scene.add_sprite(LAYER_NAME_DROP, drop1)
 
         # drop 2
         self.drops_number += 1
@@ -348,7 +348,7 @@ class MyGame(arcade.Window):
         drop2 = Drop(drop_name, drop_pos, monster.status, self.drops_number)
         game.sendto(f'{NAME},TDROP,{drop_name},{drop_pos},{monster.status}'.encode(), Server_ADDR)
         self.drops_list.append(drop2)
-        self.scene.add_sprite(LAYER_NAME_ITEM, drop2)
+        self.scene.add_sprite(LAYER_NAME_DROP, drop2)
 
     def enemies_update(self):
         # movement & health & death
@@ -402,7 +402,7 @@ class MyGame(arcade.Window):
     def create_attack(self):
         self.player.attack_time = time.time()
         self.player.current_attack = Weapon(self.player)
-        self.scene.add_sprite(LAYER_NAME_ITEM, self.player.current_attack)
+        self.scene.add_sprite(LAYER_NAME_WEAPON, self.player.current_attack)
         self.player.attacking = True
 
     def destroy_attack(self):
@@ -439,7 +439,7 @@ class MyGame(arcade.Window):
             self.sound = arcade.Sound(POTION1_MUSIC, streaming=True)
             self.player_sound = arcade.play_sound(self.sound, self.volume)
         self.player.current_magic.magic_update(self.ui_screen)
-        self.scene.add_sprite(LAYER_NAME_ITEM, self.player.current_magic)
+        self.scene.add_sprite(LAYER_NAME_MAGIC, self.player.current_magic)
 
     def destroy_magic(self):
         self.player.magicing = False
@@ -458,7 +458,7 @@ class MyGame(arcade.Window):
         self.player.last_drop = Drop(self.player.item, drops_pos, self.player.status, self.drops_number)
         game.sendto(f'{NAME},TDROP,{self.player.item},{drops_pos},{self.player.status}'.encode(), Server_ADDR)
         self.drops_list.append(self.player.last_drop)
-        self.scene.add_sprite(LAYER_NAME_ITEM, self.player.last_drop)
+        self.scene.add_sprite(LAYER_NAME_DROP, self.player.last_drop)
         # reducing amount of drop
         self.player.items[self.player.item]['amount'] -= 1
         # amount is 0, this drop is no more
@@ -569,7 +569,7 @@ class MyGame(arcade.Window):
                                 int(float(data.decode().split(',')[4][1:data.decode().split(',')[4].find(')')])))
                     drop = Drop(drop_name, drop_pos, drop_status, self.drops_number)
                     self.drops_list.append(drop)
-                    self.scene.add_sprite(LAYER_NAME_ITEM, drop)
+                    self.scene.add_sprite(LAYER_NAME_DROP, drop)
                     break
 
                 elif type == 'PDROP':
