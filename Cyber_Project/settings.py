@@ -1,6 +1,6 @@
 import os.path
 
-IP = '192.168.173.20'
+IP = '192.168.56.1'
 
 # Load Balancer
 LB_IP = IP

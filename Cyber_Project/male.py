@@ -32,7 +32,7 @@ print("connected")
 
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+        super().__init__(width, height, title, resizable=True, vsync=True)
         arcade.set_background_color(SCREEN_COLOR)
 
         # Screen
