@@ -22,7 +22,7 @@ game = socket(AF_INET, SOCK_DGRAM)
 game.bind(ADDR)
 game.sendto(f'IP, {ADDR}'.encode(), Server_ADDR)
 while True:
-    data, addr = game.recvfrom(1024)
+    data, addr = game.recvfrom(RECV_SIZE)
     if data.decode():
         Server_ADDR = data.decode()
         Server_ADDR = eval(Server_ADDR)
@@ -32,7 +32,7 @@ print("connected")
 
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
-        super().__init__(width, height, title)
+        super().__init__(width, height, title, resizable=True, vsync=True)
         arcade.set_background_color(SCREEN_COLOR)
 
         # Screen
@@ -41,6 +41,12 @@ class MyGame(arcade.Window):
         self.tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
         print("map is good")
         self.pss_msg = []
+        self.use_srgb = True
+
+        # Sound
+        self.sound = arcade.Sound(DEFAULT_MUSIC, streaming=True)
+        self.volume = MUSIC_VOLUME
+        self.player_sound = arcade.play_sound(self.sound, self.volume)
 
         # My Player
         self.player = Player(PLAYER_IMAGE, SPRITE_SCALING)
@@ -54,6 +60,10 @@ class MyGame(arcade.Window):
         self.player_list = arcade.SpriteList()
         self.drops_list = []
         self.drops_number = 0
+        self.weapons_list = []
+        self.weapons_number = 0
+        self.magic_list = []
+        self.magic_number = 0
 
         # Enemies
         self.enemies_list = []
@@ -76,8 +86,8 @@ class MyGame(arcade.Window):
             arcade.set_background_color(self.tile_map.background_color)
 
         # Player
-        player_x = self.tile_map.sprite_lists[LAYER_NAME_PLAYER][0].center_x
-        player_y = self.tile_map.sprite_lists[LAYER_NAME_PLAYER][0].center_y
+        player_x = self.tile_map.sprite_lists[LAYER_NAME_ENTITY][0].center_x + 150
+        player_y = self.tile_map.sprite_lists[LAYER_NAME_ENTITY][0].center_y
         self.player.center_x, self.player.center_y = (player_x+64, player_y+64)
         self.player_list.append(self.player1)
         self.scene.add_sprite_list('Players', False, self.player_list)
@@ -89,7 +99,8 @@ class MyGame(arcade.Window):
         # Physics :(
         player_collisions = self.scene[LAYER_NAME_BARRIER]
         for player in self.player_list:
-            if player in player_collisions: continue
+            if player in player_collisions:
+                continue
             player_collisions.append(player)
         self.player_physics_engine = arcade.PhysicsEngineSimple(self.player, walls=player_collisions)
 
@@ -126,6 +137,19 @@ class MyGame(arcade.Window):
             if current_time - self.player.attack_time >= weapon_data[self.player.weapon]['cooldown']:
                 self.player.attacking = False
                 self.destroy_attack()
+
+        if self.player.magicing:
+            if current_time - self.player.magic_time >= magic_data[self.player.magic]['cooldown']:
+                self.player.magicing = False
+                self.destroy_magic()
+
+        for weapon in self.weapons_list:
+            if current_time - weapon.time >= weapon_data[weapon.name]['cooldown']:
+                weapon.kill()
+
+        for magic in self.magic_list:
+            if current_time - magic.time >= magic_data[magic.name]['cooldown']:
+                magic.kill()
 
         if not self.player.vulnerable:
             if current_time - self.player.hurt_time >= 0.4:
@@ -208,10 +232,6 @@ class MyGame(arcade.Window):
         elif key == arcade.key.X:
             print(f'({self.player.center_x},{self.player.center_y})')
 
-        # magic! 0-0
-        elif key == arcade.key.M and self.player.current_magic and self.player.magicing:
-            self.destroy_magic()
-
         # drops :P
         elif key == arcade.key.Q and self.player.item is not None:
             self.create_drop()
@@ -241,7 +261,7 @@ class MyGame(arcade.Window):
                 # weapon
                 if list(self.player.items.values())[self.player.selection_index]['type'] == 'weapon':
                     self.player.weapon = list(self.player.items.keys())[self.player.selection_index]
-                    self.player.current_attack = Weapon(self.player)
+                    self.player.current_attack = Weapon((self.player.center_x, self.player.center_y), self.player.weapon, self.player.status)
 
                 # magic
                 elif list(self.player.items.values())[self.player.selection_index]['type'] == 'magic':
@@ -293,43 +313,35 @@ class MyGame(arcade.Window):
 
     def check_if_attacked(self):
         for monster in self.enemies_list:
-            if monster.attacked == self.player: return True
+            if monster.attacked == self.player:
+                return True
         return False
 
     # ------------------ enemies ------------------
 
     def draw_enemies(self):
         # draw
-        for monster_data in enemy_data.values():
-            for monster in self.tile_map.sprite_lists[monster_data['layer']]:
-                enemy = Enemy(monster_data['filename'], ENTITY_SIZE, monster_data['layer'], self.player,
-                              self.player_list, self.enemies_number)
+        for i in range(len(self.tile_map.sprite_lists[LAYER_NAME_ENTITY])):
+            enemy = Enemy(enemy_data['Squid']['filename'], ENTITY_SIZE, enemy_data['Squid']['layer'], self.player,
+                          self.player_list, self.enemies_number)
 
-                self.enemies_number += 1
-                self.enemies_list.append(enemy)
+            self.enemies_number += 1
+            self.enemies_list.append(enemy)
 
-                self.scene.add_sprite(LAYER_NAME_ENEMY, enemy)
+            self.scene.add_sprite(LAYER_NAME_ENTITY, enemy)
 
         # physics
         for monster in self.enemies_list:
             enemies_collision = self.scene[LAYER_NAME_BARRIER]
             for other_enemy in self.enemies_list:
-                if other_enemy == monster: continue
-                if other_enemy in enemies_collision: continue
+                if other_enemy == monster:
+                    continue
+                if other_enemy in enemies_collision:
+                    continue
                 enemies_collision.append(other_enemy)
 
             physics = arcade.PhysicsEngineSimple(monster, walls=enemies_collision)
             self.enemies_physics.append(physics)
-
-    def revive_enemies(self):
-        for monster in self.dead_enemies_list:
-            self.enemies_number += 1
-            self.enemies_list.append(monster)
-            self.dead_enemies_list.remove(monster)
-            monster.center_x = choice(self.tile_map.sprite_lists[enemy_data[monster.name]['layer']]).center_x
-            monster.center_y = choice(self.tile_map.sprite_lists[enemy_data[monster.name]['layer']]).center_y
-            monster.health = enemy_data[monster.name]['health']
-            self.scene.add_sprite(LAYER_NAME_ENEMY, monster)
 
     def enemy_create_drop(self, monster):
         # drop 1
@@ -339,7 +351,7 @@ class MyGame(arcade.Window):
         drop1 = Drop(drop_name, drop_pos, monster.status, self.drops_number)
         game.sendto(f'{NAME},TDROP,{drop_name},{drop_pos},{monster.status}'.encode(), Server_ADDR)
         self.drops_list.append(drop1)
-        self.scene.add_sprite(LAYER_NAME_DROP, drop1)
+        self.scene.add_sprite(LAYER_NAME_ITEM, drop1)
 
         # drop 2
         self.drops_number += 1
@@ -348,7 +360,7 @@ class MyGame(arcade.Window):
         drop2 = Drop(drop_name, drop_pos, monster.status, self.drops_number)
         game.sendto(f'{NAME},TDROP,{drop_name},{drop_pos},{monster.status}'.encode(), Server_ADDR)
         self.drops_list.append(drop2)
-        self.scene.add_sprite(LAYER_NAME_DROP, drop2)
+        self.scene.add_sprite(LAYER_NAME_ITEM, drop2)
 
     def enemies_update(self):
         # movement & health & death
@@ -361,49 +373,22 @@ class MyGame(arcade.Window):
                     # drop
                     self.enemy_create_drop(monster)
 
-    def enemies_auto_move(self, monster):
-        if time.time() - monster.auto_movement_time >= 0.4:
-            monster.auto_movement_time = time.time()
-            if monster.center_x - 64 <= 439.8 and (-1, 0) in monster.movement_options:  # left
-                monster.movement_options.remove((-1, 0))
-
-            elif monster.center_x + 64 >= 28635.8 and (1, 0) in monster.movement_options:  # right
-                monster.movement_options.remove((1, 0))
-
-            elif monster.center_y - 64 <= 525 and (0, -1) in monster.movement_options:  # down
-                monster.movement_options.remove((0, -1))
-
-            elif monster.center_y + 64 >= 19724 and (0, 1) in monster.movement_options:  # up
-                monster.movement_options.remove((0, 1))
-
-        if time.time() - monster.auto_movement_time2 >= 1.5:
-            monster.auto_movement_time2 = time.time()
-            monster.movement_options = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-            random.shuffle(monster.movement_options)
-
-        # Move!
-        monster.change_x, monster.change_y = monster.movement_options[0]
-
     def damage_enemies(self):
         for index, monster in enumerate(self.enemies_list):
             if arcade.check_for_collision(self.player.current_attack, monster):
                 game.sendto(f"{NAME},HURT,{index},{self.player.stats['attack']}".encode(), Server_ADDR)
-                if self.player.current_attack.direction == 'up':
-                    direction = (0, 1)
-                elif self.player.current_attack.direction == 'down':
-                    direction = (0, -1)
-                elif self.player.current_attack.direction == 'right':
-                    direction = (1, 0)
-                else:
-                    direction = (-1, 0)
 
     # ------------------ attack! ------------------
 
     def create_attack(self):
         self.player.attack_time = time.time()
-        self.player.current_attack = Weapon(self.player)
-        self.scene.add_sprite(LAYER_NAME_WEAPON, self.player.current_attack)
+        self.player.current_attack = Weapon((self.player.center_x, self.player.center_y), self.player.weapon, self.player.status)
+        self.scene.add_sprite(LAYER_NAME_ITEM, self.player.current_attack)
         self.player.attacking = True
+        # WAT message
+        game.sendto(
+            f'{NAME},WAT,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.weapon}'.encode(),
+            Server_ADDR)
 
     def destroy_attack(self):
         self.player.attacking = False
@@ -429,7 +414,7 @@ class MyGame(arcade.Window):
     def create_magic(self):
         self.player.magic_time = time.time()
         self.player.magicing = True
-        self.player.current_magic = Magic(self.player)
+        self.player.current_magic = Magic((self.player.center_x, self.player.center_y), self.player.magic, self.player.status)
         if self.player.magic == 'potion':
             arcade.stop_sound(self.player_sound)
             self.sound = arcade.Sound(POTION_MUSIC, streaming=True)
@@ -438,17 +423,22 @@ class MyGame(arcade.Window):
             arcade.stop_sound(self.player_sound)
             self.sound = arcade.Sound(POTION1_MUSIC, streaming=True)
             self.player_sound = arcade.play_sound(self.sound, self.volume)
-        self.player.current_magic.magic_update(self.ui_screen)
-        self.scene.add_sprite(LAYER_NAME_MAGIC, self.player.current_magic)
+        did_magic = self.player.magic_update(self.ui_screen, self.player.current_magic)
+        if not did_magic: return
+        self.scene.add_sprite(LAYER_NAME_ITEM, self.player.current_magic)
+        # MAT message
+        game.sendto(
+            f'{NAME},MAT,{self.player.current_magic.center_x},{self.player.current_magic.center_y},{self.player.status},{self.player.magic}'.encode(),
+            Server_ADDR)
 
     def destroy_magic(self):
+        if self.player.magic == 'flame':
+            for index, monster in enumerate(self.enemies_list):
+                if arcade.check_for_collision(self.player.current_magic, monster):
+                    game.sendto(f"{NAME},HURT,{index},{self.player.stats['attack']}".encode(), Server_ADDR)
+
         self.player.magicing = False
         self.player.current_magic.kill()
-
-        if self.player.magic == 'flame':
-            for monster in self.enemies_list:
-                if arcade.check_for_collision(self.player.current_magic, monster):
-                    monster.health -= self.player.stats['attack']
 
     # ------------------ drop ------------------
 
@@ -458,7 +448,7 @@ class MyGame(arcade.Window):
         self.player.last_drop = Drop(self.player.item, drops_pos, self.player.status, self.drops_number)
         game.sendto(f'{NAME},TDROP,{self.player.item},{drops_pos},{self.player.status}'.encode(), Server_ADDR)
         self.drops_list.append(self.player.last_drop)
-        self.scene.add_sprite(LAYER_NAME_DROP, self.player.last_drop)
+        self.scene.add_sprite(LAYER_NAME_ITEM, self.player.last_drop)
         # reducing amount of drop
         self.player.items[self.player.item]['amount'] -= 1
         # amount is 0, this drop is no more
@@ -506,16 +496,19 @@ class MyGame(arcade.Window):
         # Enemies
         if len(self.pss_msg) < 7 or not self.enemies_list: return
         index = 6
-        for enemy in self.enemies_list:
+        for enemy_list_index, enemy in enumerate(self.enemies_list):
+            enemy_pkt_index = self.pss_msg[index + 4]
+            if int(enemy_pkt_index) != enemy_list_index: continue
+
             cords = float(self.pss_msg[index][1:]), float(self.pss_msg[index + 1][1:self.pss_msg[index + 1].find(')')])
             status = self.pss_msg[index + 2]
             health = int(float(self.pss_msg[index + 3]))
             enemy.status = status
             enemy.center_x, enemy.center_y = cords
             enemy.health = health
-            if index + 4 > len(self.pss_msg) - 1:
+            if index + 5 > len(self.pss_msg) - 1:
                 return
-            index += 4
+            index += 5
 
     def send_stuff(self):
         # PSS
@@ -524,6 +517,10 @@ class MyGame(arcade.Window):
             Server_ADDR)
 
     def on_update(self, delta_time):
+        # Music!
+        if self.player_sound.time == 0:
+            self.player_sound = arcade.play_sound(self.sound, self.volume)
+
         # Screen
         self.main_cooldowns()
         self.center_camera_to_player()
@@ -553,31 +550,57 @@ class MyGame(arcade.Window):
             self.read_pss_msg()
         self.send_stuff()
         while True:
-            data, addr = game.recvfrom(1024)
+            data, addr = game.recvfrom(RECV_SIZE)
             if data.decode():
-                name = data.decode().split(',')[0]
-                type = data.decode().split(',')[1]
+                data = data.decode().split(',')
+                name = data[0]
+                type = data[1]
 
                 if type == 'PSS':
-                    self.pss_msg = data.decode().split(',')
+                    self.pss_msg = data
+                    break
+
+                elif type == 'WAT':
+                    cords = (int(float(data[2])), int(float(data[3])))
+                    p_status = data[4]
+                    weapon_name = data[5]
+
+                    self.weapons_number += 1
+                    weapon = Weapon(cords, weapon_name, p_status)
+                    weapon.time = time.time()
+                    self.weapons_list.append(weapon)
+                    self.scene.add_sprite(LAYER_NAME_ITEM, weapon)
+                    break
+
+                elif type == 'MAT':
+                    cords = (int(float(data[2])), int(float(data[3])))
+                    p_status = data[4]
+                    magic_name = data[5]
+
+                    self.magic_number += 1
+                    magic = Magic(cords, magic_name, p_status)
+                    magic.time = time.time()
+                    self.magic_list.append(magic)
+                    self.scene.add_sprite(LAYER_NAME_ITEM, magic)
                     break
 
                 elif type == 'TDROP':
                     self.drops_number += 1
-                    drop_name, drop_status = data.decode().split(',')[2], data.decode().split(',')[5]
-                    drop_pos = (int(float(data.decode().split(',')[3][1:])),
-                                int(float(data.decode().split(',')[4][1:data.decode().split(',')[4].find(')')])))
+                    drop_name, drop_status = data[2], data[5]
+                    drop_pos = (int(float(data[3][1:])),
+                                int(float(data[4][1:data[4].find(')')])))
                     drop = Drop(drop_name, drop_pos, drop_status, self.drops_number)
                     self.drops_list.append(drop)
-                    self.scene.add_sprite(LAYER_NAME_DROP, drop)
+                    self.scene.add_sprite(LAYER_NAME_ITEM, drop)
                     break
 
                 elif type == 'PDROP':
-                    drop_name = data.decode().split(',')[2]
-                    drop_pos = (int(float(data.decode().split(',')[3][1:])),
-                                int(float(data.decode().split(',')[4][1:data.decode().split(',')[4].find(')')])))
+                    drop_name = data[2]
+                    drop_pos = (int(float(data[3][1:])),
+                                int(float(data[4][1:data[4].find(')')])))
                     for drop in self.drops_list:
-                        if drop.name != drop_name: continue
+                        if drop.name != drop_name:
+                            continue
                         if drop.pos == drop_pos:
                             drop.kill()
                             self.drops_number -= 1

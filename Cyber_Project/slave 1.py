@@ -21,15 +21,19 @@ slave.bind(ADDR)
 slave.sendto(f'{ADDR}'.encode(), (LB_IP, LB_PORT))
 
 # Game
-players_dict = {}
+players_dict = {'MALE': (0, 0), 'FEMALE': (0, 0)}
 enemies_number = 0
 enemies_cords = []
 enemies_names = []
 enemies_health = []
+enemies_died = []
+enemies_died_time = []
 enemies_movement_options = []
 auto_move_time = []
 auto_move_time2 = []
-tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
+layer_options = {
+    LAYER_NAME_ENTITY: {"use_spatial_hash": True}}
+tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=layer_options)
 
 
 # ------------------ enemies ------------------
@@ -127,7 +131,7 @@ def enemies():
 
 def receive():
     while True:
-        message, addr = slave.recvfrom(1024)
+        message, addr = slave.recvfrom(RECV_SIZE)
 
         # making players cords list
         if message.decode().split(',')[1] == "PSS":
@@ -141,7 +145,7 @@ def receive():
             index = int(message.decode().split(',')[2])
             damage = int(message.decode().split(',')[3])
             enemies_health[index] -= damage
-            enemies_cords[index] = enemies_cords[index][0] - 64,  enemies_cords[index][1] - 64
+            #enemies_cords[index] = enemies_cords[index][0] - 64,  enemies_cords[index][1] - 64
         # take care of message
         messages.put((message, addr))
 
@@ -150,7 +154,7 @@ def broadcast():
     while True:
         while not messages.empty():
             message, addr = messages.get()
-            for client in clients:
+            for client_index, client in enumerate(clients):
                 if addr == client:
                     continue
                 if message.decode().split(',')[1] == 'HURT':
@@ -159,24 +163,35 @@ def broadcast():
                     enemies()
                     enemy_message = ''
                     for index, cords in enumerate(enemies_cords):
-                        status = get_status(cords, enemies_names[index])
                         health = enemies_health[index]
-                        enemy_message += f',{cords},{status},{health}'
+                        status = get_status(cords, enemies_names[index])
+                        client_cords = list(players_dict.values())[client_index]
+                        get_to_list_conditions = ((abs(float(cords[0]) - float(client_cords[0])) <= SCREEN_WIDTH//2 and
+                                                  abs(float(cords[1]) - float(client_cords[1])) <= SCREEN_HEIGHT//2) or
+                                                  enemies_died[index])
+
+                        if get_to_list_conditions:
+                            enemy_message += f',{cords},{status},{health},{index}'
+                            if enemies_died[index] and time.time() - enemies_died_time[index] >= 0.3:
+                                enemies_died[index] = False
+
                         if health <= 0:
+                            enemies_died_time[index] = time.time()
+                            enemies_died[index] = True
                             enemies_cords[index] = (
-                            choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_x,
-                            choice(tile_map.sprite_lists[enemy_data[enemies_names[index]]['layer']]).center_y)
+                                choice(tile_map.sprite_lists[LAYER_NAME_ENTITY]).center_x,
+                                choice(tile_map.sprite_lists[LAYER_NAME_ENTITY]).center_y)
                             enemies_health[index] = enemy_data[enemies_names[index]]['health']
 
                     msg = message.decode()+enemy_message
                     slave.sendto(f'{msg}'.encode(), client)
-                else:
+                elif message.decode().split(',')[1] in ["TDROP", "PDROP", "WAT", "MAT"]:
                     slave.sendto(f'{message.decode()}'.encode(), client)
 
 
 def find_clients():
     while True:
-        data, addr = slave.recvfrom(1024)
+        data, addr = slave.recvfrom(RECV_SIZE)
         if data.decode():
             the_data = data.decode()
             if the_data[0:2] == 'IP':
@@ -189,17 +204,18 @@ def find_clients():
 
 def main():
     # enemies start
-    for monster_data in enemy_data.values():
-        for monster in tile_map.sprite_lists[monster_data['layer']]:
-            enemies_cords.append((monster.center_x, monster.center_y))
-            enemies_names.append(monster_data['layer'])
-            enemies_health.append(monster_data['health'])
-            enemies_movement_options.append([(0, 1), (0, -1), (1, 0), (-1, 0)])
-            auto_move_time.append(time.time())
-            auto_move_time2.append(time.time())
+    for monster in tile_map.sprite_lists[LAYER_NAME_ENTITY]:
+        enemies_cords.append((monster.center_x, monster.center_y))
+        enemies_names.append(enemy_data['Squid']['layer'])
+        enemies_health.append(enemy_data['Squid']['health'])
+        enemies_died.append(False)
+        enemies_died_time.append(time.time())
+        enemies_movement_options.append([(0, 1), (0, -1), (1, 0), (-1, 0)])
+        auto_move_time.append(time.time())
+        auto_move_time2.append(time.time())
 
     while True:
-        data, addr = slave.recvfrom(1024)
+        data, addr = slave.recvfrom(RECV_SIZE)
         if data.decode() == 'done':
             break
 

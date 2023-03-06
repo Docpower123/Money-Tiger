@@ -1,15 +1,18 @@
 import arcade
+import time
 from settings import *
 
 
 class Weapon(arcade.Sprite):
-    def __init__(self, player):
+    def __init__(self, p_pos, name, p_status):
         super().__init__()
-        self.direction = player.status.split('_')[0]
-        self.player = player
+        self.direction = p_status.split('_')[0]
+        self.p_pos = p_pos
+        self.time = time.time()  # the time when you attacked with it
+        self.name = name
 
         # graphic
-        self.filename = f'./graphic/weapons/{player.weapon}/{self.direction}.png'
+        self.filename = f'./graphic/weapons/{name}/{self.direction}.png'
         self.texture = arcade.load_texture(self.filename)
 
         # on screen
@@ -22,5 +25,5 @@ class Weapon(arcade.Sprite):
         else:
             x_more, y_more = (-PLAYER_IMAGE_SIZE+16, -16)
 
-        self.center_x = self.player.center_x + x_more
-        self.center_y = self.player.center_y + y_more
+        self.center_x = p_pos[0] + x_more
+        self.center_y = p_pos[1] + y_more

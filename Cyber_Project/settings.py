@@ -1,22 +1,23 @@
-import os.path
+# Server
 
-IP = '192.168.173.20'
+IP = '192.168.68.108'
+RECV_SIZE = 4000
 
 # Load Balancer
 LB_IP = IP
-LB_PORT = 9999
+LB_PORT = 9998
 
 # Slave 1
 S1_IP = IP
-S1_PORT = 9994
+S1_PORT = 9996
 
 # Game
 FEMALE_IP = IP
-FEMALE_PORT = 6705
+FEMALE_PORT = 6707
 
 # Game1
 MALE_IP = IP
-MALE_PORT = 6604
+MALE_PORT = 6660
 
 # Generally game
 SPRITE_SCALING = 1
@@ -24,7 +25,8 @@ SCREEN_COLOR = (113, 221, 238)
 SCREEN_WIDTH = 650
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
-TILED_MAP = './map/map.json'
+MUSIC_VOLUME = 0.2
+TILED_MAP = '.\\map\\map.json'
 
 # music!
 DEFAULT_MUSIC = './audio/never.mp3'
@@ -40,6 +42,7 @@ DEFAULT_ITEM = 'eraser'
 PLAYER_IMAGE_SIZE = 64
 PLAYER_IMAGE = './graphic/player/down/down_0.png'
 PLAYER_PATH = './graphic/player/'
+PLAYER_STATS = {'health': 100, 'energy': 600000, 'attack': 50, 'magic': 4, 'speed': 6}
 player_animations = {'up': ['up_0.png', 'up_1.png', 'up_2.png', 'up_3.png'],
                      'down': ['down_0.png', 'down_1.png', 'down_2.png', 'down_3.png'],
                      'left': ['left_0.png', 'left_1.png', 'left_2.png', 'left_3.png'],
@@ -51,10 +54,10 @@ player_animations = {'up': ['up_0.png', 'up_1.png', 'up_2.png', 'up_3.png'],
 
 # enemy
 ENEMY_PATH = './graphic/monsters/'
-enemy_data = {'Squid': {'health': 100, 'layer': 'Squid', 'damage': 20, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Squid/idle/0.png', 'attack_radius': 80, 'notice_radius': 300},
-              'Bamboo': {'health': 70, 'layer': 'Bamboo', 'damage': 6, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Bamboo/idle/0.png', 'attack_radius': 80, 'notice_radius': 300},
-              'Raccoon': {'health': 300, 'layer': 'Raccoon', 'damage': 40, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Raccoon/idle/0.png', 'attack_radius': 180, 'notice_radius': 400},
-              'Spirit': {'health': 100, 'layer': 'Spirit', 'damage': 8, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Spirit/idle/0.png', 'attack_radius': 130, 'notice_radius': 300}}
+enemy_data = {'Squid': {'health': 100, 'layer': 'Squid', 'damage': 1, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Squid/idle/0.png', 'attack_radius': 120, 'notice_radius': 360},
+              'Bamboo': {'health': 70, 'layer': 'Bamboo', 'damage': 1, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Bamboo/idle/0.png', 'attack_radius': 120, 'notice_radius': 300},
+              'Raccoon': {'health': 300, 'layer': 'Raccoon', 'damage': 3, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Raccoon/idle/0.png', 'attack_radius': 180, 'notice_radius': 400},
+              'Spirit': {'health': 100, 'layer': 'Spirit', 'damage': 2, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Spirit/idle/0.png', 'attack_radius': 120, 'notice_radius': 350}}
 raccoon_animations = {'attack': ['0.png', '1.png', '2.png', '3.png'],
                       'idle': ['0.png', '1.png', '2.png', '3.png', '4.png', '5.png'],
                       'move': ['0.png', '1.png', '2.png', '3.png', '4.png']}
@@ -77,10 +80,10 @@ weapon_data = {
 # magic
 DEFAULT_MAGIC = 'flame'
 magic_data = {
-    'flame': {'strength': 0, 'cost': 20, 'graphic': './graphic/particles/flame/fire.png'},
-    'heal': {'strength': 20, 'cost': 10, 'graphic': './graphic/particles/heal/heal.png'},
-    'potion': {'strength': 0, 'cost': 15, 'graphic': './graphic/particles/heal/heal.png'},  # gimme more
-    'potion1': {'strength': 0, 'cost': 15, 'graphic': './graphic/particles/heal/heal.png'}}  # goni says "where" for 20 min
+    'flame': {'cooldown': 0.1, 'strength': 0, 'cost': 20, 'graphic': './graphic/particles/flame/fire.png'},
+    'heal': {'cooldown': 0.1, 'strength': 20, 'cost': 10, 'graphic': './graphic/particles/heal/heal.png'},
+    'potion': {'cooldown': 0.1, 'strength': 0, 'cost': 15, 'graphic': './graphic/particles/heal/heal.png'},  # gimme more
+    'potion1': {'cooldown': 0.1, 'strength': 0, 'cost': 15, 'graphic': './graphic/particles/heal/heal.png'}}  # goni says "where" for 20 min
 
 # drops & inventory
 UI_SIZE = 14
@@ -97,17 +100,11 @@ TILE_SIZE = 0.7
 
 # TileMap
 LAYER_NAME_GROUND = "Ground"
-LAYER_NAME_PLANTS = "Plants"
 LAYER_NAME_BARRIER = "Barrier"
-LAYER_NAME_PLAYER = "Player"
-LAYER_NAME_WEAPON = "Weapon"
-LAYER_NAME_MAGIC = "Magic"
-LAYER_NAME_DROP = "Drop"
-LAYER_NAME_ENEMY = "Enemy"
+LAYER_NAME_ITEM = "Item"
+LAYER_NAME_ENTITY = "Entity"
 LAYER_OPTIONS = {
     LAYER_NAME_GROUND: {"use_spatial_hash": True},
-    LAYER_NAME_PLANTS: {"use_spatial_hash": True},
     LAYER_NAME_BARRIER: {"use_spatial_hash": True},
-    LAYER_NAME_WEAPON: {"use_spatial_hash": True},
-    LAYER_NAME_MAGIC: {"use_spatial_hash": True},
-    LAYER_NAME_DROP: {"use_spatial_hash": True}}
+    LAYER_NAME_ITEM: {"use_spatial_hash": True},
+    LAYER_NAME_ENTITY: {"use_spatial_hash": True}}

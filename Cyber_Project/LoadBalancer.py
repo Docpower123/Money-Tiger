@@ -28,7 +28,7 @@ print('load balancer is up and running!')
 # set up connection with slaves
 count = 0
 while True:
-    data, addr = loadbalancer.recvfrom(1024)
+    data, addr = loadbalancer.recvfrom(RECV_SIZE)
     if str(addr[1]).startswith('9'):
         slaves.append(addr)
         loadbalancer.sendto(f'done'.encode(), addr)
@@ -38,7 +38,7 @@ while True:
 
 while True:
     # begin work with clients:
-    data, addr = loadbalancer.recvfrom(1024)
+    data, addr = loadbalancer.recvfrom(RECV_SIZE)
     if addr not in clients and addr not in slaves:
         clients.append(addr)
         handle_new_user(addr)
@@ -48,7 +48,6 @@ while True:
 # chat!
 # synchronized pickup of drop sometimes does not work :(
 # synchronized weapons & magic
-# one squid can collide EVERYTHING
 # players join during game
 
 # ------------------- what we have -------------------
@@ -59,6 +58,8 @@ while True:
 
 # Structure: (USERNAME,TYPE,DATA)
 # Types:
-    # PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health)
+    # PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health,index)
     # TDROP - take drops - DATA=(drop_name,x,y, drop_status)
     # PDROP - pick drops - DATA=(drop_name,x,y)
+    # WAT - weapon attack - DATA=(player_x,player_y,status,name)
+    # MAT - magic attack - DATA=(magic_x,magic_y,status,name)
