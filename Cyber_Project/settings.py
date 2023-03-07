@@ -4,19 +4,19 @@ IP = '192.168.56.1'
 
 # Load Balancer
 LB_IP = IP
-LB_PORT = 9999
+LB_PORT = 9998
 
 # Slave 1
 S1_IP = IP
-S1_PORT = 9994
+S1_PORT = 9993
 
 # Game
 FEMALE_IP = IP
-FEMALE_PORT = 6705
+FEMALE_PORT = 6704
 
 # Game1
 MALE_IP = IP
-MALE_PORT = 6604
+MALE_PORT = 6603
 
 # Generally game
 SPRITE_SCALING = 1
@@ -24,7 +24,7 @@ SCREEN_COLOR = (113, 221, 238)
 SCREEN_WIDTH = 650
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
-TILED_MAP = './map/map.json'
+TILED_MAP = './map/bestmap.json'
 
 # music!
 DEFAULT_MUSIC = './audio/never.mp3'

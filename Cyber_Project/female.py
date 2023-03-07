@@ -41,7 +41,7 @@ class MyGame(arcade.Window):
         self.tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
         print("map is good")
         self.pss_msg = []
-
+        self.use_srgb = True
         # My Player
         self.player = Player(PLAYER_IMAGE, SPRITE_SCALING)
         self.player_physics_engine = None
