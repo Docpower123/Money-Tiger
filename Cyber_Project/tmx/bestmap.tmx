@@ -3,11 +3,11 @@
  <editorsettings>
   <export target="../map/bestmap.json" format="json"/>
  </editorsettings>
- <tileset firstgid="1" source="../../../../../../../../Networks/work/best project/tsx/Floor.tsx"/>
- <tileset firstgid="551" source="../../../../../../../../Networks/work/best project/tsx/tree.tsx"/>
- <tileset firstgid="555" source="../../../../../../../../Networks/work/best project/tsx/rock.tsx"/>
- <tileset firstgid="559" source="../../../../../../../../Networks/work/best project/tsx/dark log.tsx"/>
- <tileset firstgid="563" source="../../../../../../../../Networks/work/best project/tsx/gray frog rock.tsx"/>
+ <tileset firstgid="1" source="../map/tsx/Floor.tsx"/>
+ <tileset firstgid="551" source="../map/tsx/tree.tsx"/>
+ <tileset firstgid="555" source="../map/tsx/rock.tsx"/>
+ <tileset firstgid="559" source="../map/tsx/dark log.tsx"/>
+ <tileset firstgid="563" source="../map/tsx/gray frog rock.tsx"/>
  <tileset firstgid="567" source="../../../../../../../../Networks/work/best project/tsx/idk some rock.tsx"/>
  <tileset firstgid="571" source="../../../../../../../../Networks/work/best project/tsx/details.tsx"/>
  <tileset firstgid="651" source="../../../../../../../../Networks/work/best project/tsx/tree2.tsx"/>

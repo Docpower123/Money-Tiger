@@ -933,71 +933,71 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/Floor.tsx"
+         "source":"..\/map\/tsx\/Floor.tsx"
         }, 
         {
          "firstgid":551,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/tree.tsx"
+         "source":"..\/map\/tsx\/tree.tsx"
         }, 
         {
          "firstgid":555,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/rock.tsx"
+         "source":"..\/map\/tsx\/rock.tsx"
         }, 
         {
          "firstgid":559,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/dark log.tsx"
+         "source":"..\/map\/tsx\/dark log.tsx"
         }, 
         {
          "firstgid":563,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/gray frog rock.tsx"
+         "source":"..\/map\/tsx\/gray frog rock.tsx"
         }, 
         {
          "firstgid":567,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/idk some rock.tsx"
+         "source":"..\/map\/tsx\/idk some rock.tsx"
         }, 
         {
          "firstgid":571,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/details.tsx"
+         "source":"..\/map\/tsx\/details.tsx"
         }, 
         {
          "firstgid":651,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/tree2.tsx"
+         "source":"..\/map\/tsx\/tree2.tsx"
         }, 
         {
          "firstgid":655,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/brown frog!.tsx"
+         "source":"..\/map\/tsx\/brown frog!.tsx"
         }, 
         {
          "firstgid":659,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/some brown rock.tsx"
+         "source":"..\/map\/tsx\/some brown rock.tsx"
         }, 
         {
          "firstgid":663,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/dark tower.tsx"
+         "source":"..\/map\/tsx\/dark tower.tsx"
         }, 
         {
          "firstgid":665,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/tree3.tsx"
+         "source":"..\/map\/tsx\/tree3.tsx"
         }, 
         {
          "firstgid":669,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/brown rock.tsx"
+         "source":"..\/map\/tsx\/brown rock.tsx"
         }, 
         {
          "firstgid":673,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/brown log.tsx"
+         "source":"..\/map\/tsx\/brown log.tsx"
         }, 
         {
          "firstgid":677,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/brown tower2.tsx"
+         "source":"..\/map\/tsx\/brown tower2.tsx"
         }, 
         {
          "firstgid":681,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/brown tower3.tsx"
+         "source":"..\/map\/tsx\/brown tower3.tsx"
         }, 
         {
          "firstgid":683,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/brown tower4.tsx"
+         "source":"..\/map\/tsx\/brown tower4.tsx"
         }],
  "tilewidth":64,
  "type":"map",
