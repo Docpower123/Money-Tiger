@@ -1,7 +1,8 @@
 # Server
 
-IP = '192.168.68.108'
+IP = '192.168.175.25'
 RECV_SIZE = 4000
+PSS_COOLDOWN = 0.08
 
 # Load Balancer
 LB_IP = IP
@@ -11,13 +12,17 @@ LB_PORT = 9998
 S1_IP = IP
 S1_PORT = 9996
 
-# Game
+# Game1
 FEMALE_IP = IP
 FEMALE_PORT = 6707
 
-# Game1
+# Game2
 MALE_IP = IP
 MALE_PORT = 6660
+
+# Game3
+CLIENT_IP = IP
+CLIENT_PORT = 6661
 
 # Generally game
 SPRITE_SCALING = 1
@@ -25,8 +30,15 @@ SCREEN_COLOR = (113, 221, 238)
 SCREEN_WIDTH = 650
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
-MUSIC_VOLUME = 0.2
+MUSIC_VOLUME = 0
+ENEMIES_NUM = 5
 TILED_MAP = '.\\map\\map.json'
+MAP_RIGHT = 2000
+MAP_LEFT = 64
+MAP_UP = 2000
+MAP_DOWN = 64
+
+#MAP_RIGHT = 28000MAP_LEFT = 450MAP_UP = 19600MAP_DOWN = 550
 
 # music!
 DEFAULT_MUSIC = './audio/never.mp3'
@@ -42,7 +54,7 @@ DEFAULT_ITEM = 'eraser'
 PLAYER_IMAGE_SIZE = 64
 PLAYER_IMAGE = './graphic/player/down/down_0.png'
 PLAYER_PATH = './graphic/player/'
-PLAYER_STATS = {'health': 100, 'energy': 600000, 'attack': 50, 'magic': 4, 'speed': 6}
+PLAYER_STATS = {'health': 100, 'energy': 100, 'attack': 50, 'magic': 4, 'speed': 6}
 player_animations = {'up': ['up_0.png', 'up_1.png', 'up_2.png', 'up_3.png'],
                      'down': ['down_0.png', 'down_1.png', 'down_2.png', 'down_3.png'],
                      'left': ['left_0.png', 'left_1.png', 'left_2.png', 'left_3.png'],
@@ -54,8 +66,8 @@ player_animations = {'up': ['up_0.png', 'up_1.png', 'up_2.png', 'up_3.png'],
 
 # enemy
 ENEMY_PATH = './graphic/monsters/'
-enemy_data = {'Squid': {'health': 100, 'layer': 'Squid', 'damage': 1, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Squid/idle/0.png', 'attack_radius': 120, 'notice_radius': 360},
-              'Bamboo': {'health': 70, 'layer': 'Bamboo', 'damage': 1, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Bamboo/idle/0.png', 'attack_radius': 120, 'notice_radius': 300},
+enemy_data = {'Squid': {'health': 100, 'layer': 'Squid', 'damage': 1, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Squid/idle/0.png', 'attack_radius': 70, 'notice_radius': 360},
+              'Bamboo': {'health': 70, 'layer': 'Bamboo', 'damage': 1, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Bamboo/idle/0.png', 'attack_radius': 70, 'notice_radius': 300},
               'Raccoon': {'health': 300, 'layer': 'Raccoon', 'damage': 3, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Raccoon/idle/0.png', 'attack_radius': 180, 'notice_radius': 400},
               'Spirit': {'health': 100, 'layer': 'Spirit', 'damage': 2, 'drop': ['eraser', 'heal', 'potion', 'potion1'], 'filename': './graphic/monsters/Spirit/idle/0.png', 'attack_radius': 120, 'notice_radius': 350}}
 raccoon_animations = {'attack': ['0.png', '1.png', '2.png', '3.png'],
@@ -88,7 +100,7 @@ magic_data = {
 # drops & inventory
 UI_SIZE = 14
 ROW_SIZE = 5
-THROW_DISTANCE = 60
+THROW_DISTANCE = 128
 drop_data = {
     'eraser': {'amount': 1, 'type': 'drop', 'graphic': './graphic/drops/eraser.png'},
     'heal': {'amount': 1, 'type': 'magic', 'graphic': './graphic/magic/heal/heal.png'},
@@ -105,6 +117,4 @@ LAYER_NAME_ITEM = "Item"
 LAYER_NAME_ENTITY = "Entity"
 LAYER_OPTIONS = {
     LAYER_NAME_GROUND: {"use_spatial_hash": True},
-    LAYER_NAME_BARRIER: {"use_spatial_hash": True},
-    LAYER_NAME_ITEM: {"use_spatial_hash": True},
-    LAYER_NAME_ENTITY: {"use_spatial_hash": True}}
+    LAYER_NAME_BARRIER: {"use_spatial_hash": True}}

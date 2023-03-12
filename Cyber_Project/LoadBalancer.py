@@ -45,21 +45,24 @@ while True:
 
 
 # ------------------- to fix / to add -------------------
-# chat!
-# synchronized pickup of drop sometimes does not work :(
-# synchronized weapons & magic
-# players join during game
+# chat! login and save! better security! docker! (not my job)
+# ping pong do shit
+# security functions
+# arcade do not like the pergulot area
 
 # ------------------- what we have -------------------
 # synchronized enemies
 # synchronized animation
 # synchronized health
 # synchronized drops
+# synchronized weapons & magic
 
 # Structure: (USERNAME,TYPE,DATA)
 # Types:
     # PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health,index)
-    # TDROP - take drops - DATA=(drop_name,x,y, drop_status)
+    # MDROP - make drops - DATA=(drop_name,x,y, drop_status)
     # PDROP - pick drops - DATA=(drop_name,x,y)
     # WAT - weapon attack - DATA=(player_x,player_y,status,name)
     # MAT - magic attack - DATA=(magic_x,magic_y,status,name)
+    # HURT - enemies hurt - DATA=(enemy_index,player_damage)
+    # KILL - client is no more in game - DATA=(username)

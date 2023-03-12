@@ -101,9 +101,9 @@ class Player(arcade.Sprite):
         else:
             self.energy = self.stats['energy']
 
-    def magic_update(self, ui_screen, magic):
+    def magic_update(self, magic):
         potions_conditions = (self.magic == 'potion' or self.magic == 'potion1' and
-                              magic_data['potion']['cost'] <= self.magic)
+                              magic_data['potion']['cost'] <= self.energy)
 
         flame_conditions = (self.magic == 'flame' and
                             magic_data['flame']['cost'] <= self.energy)
@@ -118,18 +118,11 @@ class Player(arcade.Sprite):
             self.energy -= magic_data[self.magic]['cost']
             magic.center_x = self.center_x + magic.direction[0]*32
             magic.center_y = self.center_y + magic.direction[1]*32
-            # reducing amount of heal
-            self.items[self.magic]['amount'] -= 1
-            # amount is 0, this magic is no more
-            if self.items[self.magic]['amount'] == 0:
-                self.items.pop(self.magic, None)
-                self.magic = DEFAULT_MAGIC
-                ui_screen.attribute_index -= 1
             return True
 
         # flame
         elif flame_conditions:
-            self.energy -= magic_data['flame']['cost']
+            self.energy -= magic_data[self.magic]['cost']
             magic.center_x = self.center_x + magic.direction[0]*12*20
             magic.center_y = self.center_y + magic.direction[1]*12*20
             return True
@@ -137,26 +130,29 @@ class Player(arcade.Sprite):
         # heal
         elif heal_conditions:
             # decrease energy, increase health
-            self.energy -= magic_data['heal']['cost']
-            if self.stats['health'] - self.health < magic_data['heal']['strength']:
+            self.energy -= magic_data[self.magic]['cost']
+            if self.stats['health'] - self.health < magic_data[self.magic]['strength']:
                 self.health = self.stats['health']
             else:
-                self.health += magic_data['heal']['strength']
+                self.health += magic_data[self.magic]['strength']
             # cords
             magic.center_x = self.center_x
             magic.center_y = self.center_y
-            # reducing amount of heal
-            self.items['heal']['amount'] -= 1
-            # amount is 0, this magic is no more
-            if self.items[self.magic]['amount'] == 0:
-                self.items.pop(self.magic, None)
-                self.magic = DEFAULT_MAGIC
-                ui_screen.attribute_index -= 1
             return True
 
         # don't have the necessary stuff for doing magic
         else:
             return False
+
+    def ui_magic_update(self, ui_screen):
+        if self.magic == 'flame': return
+        # reducing amount of heal
+        self.items[self.magic]['amount'] -= 1
+        # amount is 0, this magic is no more
+        if self.items[self.magic]['amount'] == 0:
+            self.items.pop(self.magic, None)
+            self.magic = DEFAULT_MAGIC
+            ui_screen.attribute_index -= 1
 
     def player_move(self):
         self.center_x += self.change_x

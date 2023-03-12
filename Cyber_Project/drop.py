@@ -12,7 +12,6 @@ class Drop(arcade.Sprite):
         if 'potion' in name:
             self.scale = 0.4
 
-
         # graphic
         self.filename = f'./graphic/drops/{name}.png'
         self.texture = arcade.load_texture(self.filename)

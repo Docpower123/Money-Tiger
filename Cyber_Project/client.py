@@ -15,8 +15,8 @@ from ui_screen import UI_SCREEN
 from ui import UI
 
 # parameters for the server to use
-NAME = 'MALE'
-ADDR = (MALE_IP, MALE_PORT)
+NAME = 'CLIENT'
+ADDR = (CLIENT_IP, CLIENT_PORT)
 Server_ADDR = (LB_IP, LB_PORT)
 messages = queue.Queue()
 
@@ -71,7 +71,7 @@ class MyGame(arcade.Window):
         self.messaging = False
 
         # Players Communication
-        self.players = {NAME: self.player, 'CLIENT': Player(PLAYER_IMAGE, SPRITE_SCALING), 'FEMALE': Player(PLAYER_IMAGE, SPRITE_SCALING)}
+        self.players = {NAME: self.player, 'MALE': Player(PLAYER_IMAGE, SPRITE_SCALING), 'FEMALE': Player(PLAYER_IMAGE, SPRITE_SCALING)}
         self.player_list = arcade.SpriteList()
         self.drops_list = []
         self.drops_number = 0
@@ -584,7 +584,6 @@ class MyGame(arcade.Window):
 
             elif type == 'KILL':
                 username = data[2]
-                print(username)
                 self.players[username].kill()
                 self.players.pop(username)
 
