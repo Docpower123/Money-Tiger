@@ -1,5 +1,7 @@
 from socket import *
 from settings import *
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization, hashes
 from random import choice
 import queue
 import threading
@@ -19,10 +21,73 @@ ping_pong = [False]
 pong_clients = []
 clients_to_kill = []
 
+
+# security functions
+def load_private_key(filename):
+    with open(filename, "rb") as f:
+        private_key = serialization.load_pem_private_key(
+            f.read(),
+            password=None
+        )
+    return private_key
+
+
+def load_public_key(filename):
+    with open(filename, "rb") as f:
+        public_key = serialization.load_pem_public_key(f.read())
+    return public_key
+
+
+def receive_message(server_socket, private_key, public_key):
+    data, client_address = server_socket.recvfrom(RECV_SIZE)
+    signature, encrypted_message = data[:256], data[256:]
+    try:
+        public_key.verify(
+            signature,
+            encrypted_message,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+    except:
+        print("Invalid signature")
+        server_socket.close()
+        exit()
+    decrypted_message = private_key.decrypt(
+        encrypted_message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return decrypted_message, client_address
+
+
+def send_response(server_socket, response, public_key, private_key, client_address):
+    encrypted_response = public_key.encrypt(
+        response,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    signature = private_key.sign(
+        encrypted_response,
+        padding.PKCS1v15(),
+        hashes.SHA256()
+    )
+    server_socket.sendto(signature + encrypted_response, client_address)
+
+
+# Load the private key from the PEM encoded file
+private_key = load_private_key("private_key.pem")
+# Load the public key from the PEM encoded file
+public_key = load_public_key("public_key.pem")
 # setting up the server
 slave = socket(AF_INET, SOCK_DGRAM)
 slave.bind(ADDR)
-slave.sendto(f'{ADDR}'.encode(), (LB_IP, LB_PORT))
+send_response(slave, f'{ADDR}'.encode(), public_key, private_key, (LB_IP, LB_PORT))
 
 # Game
 players_dict = {}
@@ -107,8 +172,7 @@ def enemies():
 
 def receive():
     while True:
-        message, addr = slave.recvfrom(RECV_SIZE)
-
+        message, addr = receive_message(slave, private_key, public_key)
         if ping_pong[0]:
             # get pong packets
             if message.decode().split(',')[1] == "PONG":
@@ -150,24 +214,23 @@ def broadcast():
             for client_index, client in enumerate(clients):
                 # ping pong!
                 if time.time() - ping_pong_time[0] >= PING_PONG_COOLDOWN:
-                    slave.sendto(f'SERVER,PING'.encode(), client)
+                    send_response(slave, f'SERVER,PING'.encode(), public_key, private_key, client)
                     ping_pong_time[0] = time.time()
                     ping_pong[0] = True
                 # kill clients who don't pong
                 for client_to_kill in clients_to_kill:
                     username = list(players_dict.keys())[clients.index(client_to_kill)]
                     print(username, client)
-                    slave.sendto(f'SERVER,KILL,{username}'.encode(), client)
+                    send_response(slave, f'SERVER,KILL,{username}'.encode(), public_key, private_key, client)
                     players_dict.pop(username)
                     clients.remove(client_to_kill)
                     clients_to_kill.remove(client_to_kill)
-
                 # don't send pkts from client to the same client
                 if addr == client and len(clients) != 1:
                     continue
                 # acceptable pkt types
-                elif message.decode().split(',')[1] in ["MDROP", "PDROP", "WAT", "MAT"]:
-                    slave.sendto(f'{message.decode()}'.encode(), client)
+                if message.decode().split(',')[1] in ["MDROP", "PDROP", "WAT", "MAT"]:
+                    send_response(slave, message, public_key, private_key, client)
                 # pss pks type - players and enemies info
                 elif message.decode().split(',')[1] == 'PSS':
                     # updating enemies
@@ -198,9 +261,11 @@ def broadcast():
                                           choice(enemy_data[enemies_names[index]]['drop'])]
                             for loop_client in clients:
                                 # drop 1
-                                slave.sendto(f'SERVER,MDROP,{drop_names[0]},{drop_pos},{status}'.encode(), loop_client)
+                                drop1_msg = f'SERVER,MDROP,{drop_names[0]},{drop_pos},{status}'
+                                send_response(slave, drop1_msg.encode(), public_key, private_key, loop_client)
                                 # drop 2
-                                slave.sendto(f'SERVER,MDROP,{drop_names[1]},{drop_pos},{status}'.encode(), loop_client)
+                                drop2_msg = f'SERVER,MDROP,{drop_names[1]},{drop_pos},{status}'
+                                send_response(slave, drop2_msg.encode(), public_key, private_key, loop_client)
 
                             # other stuff
                             enemies_died_time[index] = time.time()
@@ -212,7 +277,7 @@ def broadcast():
 
                     # actually sending the info
                     msg = message.decode()+enemy_message
-                    slave.sendto(f'{msg}'.encode(), client)
+                    send_response(slave, f'{msg}'.encode(), public_key, private_key, client)
 
 
 # ------------------ main ------------------
@@ -236,7 +301,7 @@ for i in range(ENEMIES_NUM):  # setup the enemies
     auto_move_time2.append(time.time())
 
 while True:
-    data, addr = slave.recvfrom(RECV_SIZE)
+    data, addr = receive_message(slave, private_key, public_key)
     if data.decode() == 'done':
         break
 

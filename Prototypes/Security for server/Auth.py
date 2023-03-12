@@ -12,7 +12,7 @@ s.bind((HOST, PORT))
 print(f'Server listening on {HOST}:{PORT}')
 
 # Load the public key for message verification
-with open('public.pem', 'rb') as key_file:
+with open('public_key.pem', 'rb') as key_file:
     public_key = serialization.load_pem_public_key(
         key_file.read(),
         backend=None

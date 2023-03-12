@@ -5,6 +5,8 @@ import time
 import random
 from socket import *
 from settings import *
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization, hashes
 from random import choice
 from player import Player
 from enemy import Enemy
@@ -20,12 +22,75 @@ ADDR = (CLIENT_IP, CLIENT_PORT)
 Server_ADDR = (LB_IP, LB_PORT)
 messages = queue.Queue()
 
+
+# security functions
+def load_private_key(filename):
+    with open(filename, "rb") as f:
+        private_key = serialization.load_pem_private_key(
+            f.read(),
+            password=None
+        )
+    return private_key
+
+
+def load_public_key(filename):
+    with open(filename, "rb") as f:
+        public_key = serialization.load_pem_public_key(f.read())
+    return public_key
+
+
+def send_message(client_socket, message, public_key, private_key, server_address):
+    encrypted_message = public_key.encrypt(
+        message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    signature = private_key.sign(
+        encrypted_message,
+        padding.PKCS1v15(),
+        hashes.SHA256()
+    )
+    client_socket.sendto(signature + encrypted_message, server_address)
+
+
+def receive_response(client_socket, private_key, public_key):
+    data, server_address = client_socket.recvfrom(RECV_SIZE)
+    signature, encrypted_response = data[:256], data[256:]
+    try:
+        public_key.verify(
+            signature,
+            encrypted_response,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+    except:
+        print("Invalid signature")
+        client_socket.close()
+        exit()
+    decrypted_response = private_key.decrypt(
+        encrypted_response,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return decrypted_response, server_address
+
+
+# Load the private key from the PEM encoded file
+private_key = load_private_key("private_key.pem")
+# Load the public key from the PEM encoded file
+public_key = load_public_key("public_key.pem")
 # setting up the server
 game = socket(AF_INET, SOCK_DGRAM)
 game.bind(ADDR)
-game.sendto(f'IP, {ADDR}'.encode(), Server_ADDR)
+send_message(game, f'IP, {ADDR}'.encode(), public_key, private_key, Server_ADDR)
 while True:
-    data, addr = game.recvfrom(RECV_SIZE)
+    data, addr = receive_response(game, private_key, public_key)
     if data.decode():
         Server_ADDR = data.decode()
         Server_ADDR = eval(Server_ADDR)
@@ -35,9 +100,9 @@ print("connected")
 
 def get_info():
     while True:
-        data, addr = game.recvfrom(RECV_SIZE)
+        data, addr = receive_response(game, private_key, public_key)
         if data.decode().split(',')[1] == 'PING':
-            game.sendto(f'{NAME},PONG'.encode(), Server_ADDR)
+            send_message(game, f'{NAME},PONG'.encode(), public_key, private_key, Server_ADDR)
         else:
             messages.put((data, addr))
 
@@ -106,9 +171,9 @@ class MyGame(arcade.Window):
             if p_name != NAME: self.player_list.append(p_sprite)
         self.scene.add_sprite_list('Players', False, self.player_list)
         self.scene.add_sprite('Player', self.player)
-        game.sendto(
-            f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'.encode(),
-            Server_ADDR)
+        # pss sending
+        pss = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
+        send_message(game, pss.encode(), public_key, private_key, Server_ADDR)
 
         # enemies
         self.draw_enemies()
@@ -385,7 +450,8 @@ class MyGame(arcade.Window):
         # the function name is pretty clear...
         for index, monster in enumerate(self.enemies_list):
             if arcade.check_for_collision(self.player.current_attack, monster):
-                game.sendto(f"{NAME},HURT,{index},{self.player.stats['attack']}".encode(), Server_ADDR)
+                msg = f"{NAME},HURT,{index},{self.player.stats['attack']}"
+                send_message(game, msg.encode(), public_key, private_key, Server_ADDR)
 
     # ------------------ attack! ------------------
 
@@ -396,9 +462,8 @@ class MyGame(arcade.Window):
         self.scene.add_sprite(LAYER_NAME_ITEM, self.player.current_attack)
         self.player.attacking = True
         # WAT message
-        game.sendto(
-            f'{NAME},WAT,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.weapon}'.encode(),
-            Server_ADDR)
+        wat = f'{NAME},WAT,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.weapon}'
+        send_message(game, wat.encode(), public_key, private_key, Server_ADDR)
 
     def destroy_attack(self):
         # the function name is pretty clear...
@@ -440,9 +505,8 @@ class MyGame(arcade.Window):
         if not did_magic: return
         self.scene.add_sprite(LAYER_NAME_ITEM, self.player.current_magic)
         # MAT message
-        game.sendto(
-            f'{NAME},MAT,{self.player.current_magic.center_x},{self.player.current_magic.center_y},{self.player.status},{self.player.magic}'.encode(),
-            Server_ADDR)
+        mat = f'{NAME},MAT,{self.player.current_magic.center_x},{self.player.current_magic.center_y},{self.player.status},{self.player.magic}'
+        send_message(game, mat.encode(), public_key, private_key, Server_ADDR)
         # ui update
         self.player.ui_magic_update(self.ui_screen)
 
@@ -451,7 +515,8 @@ class MyGame(arcade.Window):
         if self.player.magic == 'flame':
             for index, monster in enumerate(self.enemies_list):
                 if arcade.check_for_collision(self.player.current_magic, monster):
-                    game.sendto(f"{NAME},HURT,{index},{self.player.stats['attack']}".encode(), Server_ADDR)
+                    hurt = f"{NAME},HURT,{index},{self.player.stats['attack']}"
+                    send_message(game, hurt.encode(), public_key, private_key, Server_ADDR)
 
         self.player.magicing = False
         self.player.current_magic.kill()
@@ -463,7 +528,10 @@ class MyGame(arcade.Window):
         self.drops_number += 1
         drops_pos = (int(self.player.center_x), int(self.player.center_y))
         self.player.last_drop = Drop(self.player.item, drops_pos, self.player.status, self.drops_number)
-        game.sendto(f'{NAME},MDROP,{self.player.item},{drops_pos},{self.player.status}'.encode(), Server_ADDR)
+        # sending MDROP msg
+        msg = f'{NAME},MDROP,{self.player.item},{drops_pos},{self.player.status}'
+        send_message(game, msg.encode(), public_key, private_key, Server_ADDR)
+        # other stuff
         self.drops_list.append(self.player.last_drop)
         self.scene.add_sprite(LAYER_NAME_ITEM, self.player.last_drop)
         # reducing amount of drop
@@ -485,7 +553,8 @@ class MyGame(arcade.Window):
             self.player.items[drop.name].update(drop_data[drop.name])
             self.ui_screen.attribute_index += 1
         # send info to server
-        game.sendto(f'{NAME},PDROP,{drop.name},{drop.pos}'.encode(), Server_ADDR)
+        msg = f'{NAME},PDROP,{drop.name},{drop.pos}'
+        send_message(game, msg.encode(), public_key, private_key, Server_ADDR)
         # this drop is no more on the floor :(
         drop.kill()
         self.drops_number -= 1
@@ -536,7 +605,7 @@ class MyGame(arcade.Window):
     def send_stuff(self):
         # PSS
         pss = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
-        game.sendto(pss.encode(), Server_ADDR)
+        send_message(game, pss.encode(), public_key, private_key, Server_ADDR)
 
     def on_update(self, delta_time):
         # Music!
