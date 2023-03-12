@@ -1,8 +1,8 @@
 # Server
 
-IP = '192.168.175.25'
+IP = '192.168.68.109'
 RECV_SIZE = 4000
-PSS_COOLDOWN = 0.08
+PSS_COOLDOWN = 0.1
 
 # Load Balancer
 LB_IP = IP
@@ -83,11 +83,11 @@ spirit_bamboo_animations = {'attack': ['0.png'],
 # weapon
 DEFAULT_WEAPON = 'sword'
 weapon_data = {
-    'sword': {'cooldown': 0.1, 'damage': 15, 'graphic': './graphics/weapons/sword/full.png'},
+    'sword': {'cooldown': 0.3, 'damage': 15, 'graphic': './graphics/weapons/sword/full.png'},
     'lance': {'cooldown': 0.5, 'damage': 30, 'graphic': './graphics/weapons/lance/full.png'},
     'axe': {'cooldown': 0.7, 'damage': 20, 'graphic': './graphics/weapons/axe/full.png'},
-    'rapier': {'cooldown': 0.3, 'damage': 8, 'graphic': './graphics/weapons/rapier/full.png'},
-    'sai': {'cooldown': 0.2, 'damage': 10, 'graphic': './graphics/weapons/sai/full.png'}}
+    'rapier': {'cooldown': 0.4, 'damage': 8, 'graphic': './graphics/weapons/rapier/full.png'},
+    'sai': {'cooldown': 0.3, 'damage': 10, 'graphic': './graphics/weapons/sai/full.png'}}
 
 # magic
 DEFAULT_MAGIC = 'flame'

@@ -108,9 +108,8 @@ while True:
 
 
 # ------------------- to fix / to add -------------------
-# chat! login and save! better security! docker! (not my job)
-# dont send mdrop when drop dont being made beacuse its on barrier
-# enemies stuck barrier
+# chat! login and save! (not my job)
+# enemies stuck barrier, enemies weird
 # arcade do not like the pergulot area
 
 # ------------------- what we have -------------------

@@ -10,9 +10,8 @@
       <change beforePath="$PROJECT_DIR$/Cyber_Project/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/client.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cyber_Project/female.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/female.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cyber_Project/male.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/male.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cyber_Project/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cyber_Project/slave 1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/slave 1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/test.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Prototypes/Security for server/Auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/Prototypes/Security for server/Auth.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,13 +30,13 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/איתי/OneDrive/מסמכים/GitHub/Money-Tiger&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Networks/work/only project"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.client">
     <configuration name="Auth" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
@@ -217,9 +216,9 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.female" />
-        <item itemvalue="Python.male" />
         <item itemvalue="Python.client" />
+        <item itemvalue="Python.male" />
+        <item itemvalue="Python.female" />
         <item itemvalue="Python.slave 1" />
         <item itemvalue="Python.LoadBalancer" />
       </list>

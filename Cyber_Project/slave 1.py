@@ -13,13 +13,14 @@ import random
 HOST = S1_IP
 PORT = S1_PORT
 ADDR = (HOST, PORT)
-PING_PONG_COOLDOWN = 300000
+PING_PONG_COOLDOWN = 10
 clients = []
 messages = queue.Queue()
 ping_pong_time = [time.time()]
 ping_pong = [False]
 pong_clients = []
 clients_to_kill = []
+just_joined_clients = []
 
 
 # security functions
@@ -181,12 +182,16 @@ def receive():
             if time.time() - ping_pong_time[0] >= PING_PONG_COOLDOWN:
                 for client_index, client in enumerate(clients):
                     ping_pong[0] = False
-                    if client not in pong_clients:
+                    if client not in pong_clients and client not in just_joined_clients:
+
                         clients_to_kill.append(client)
+                    elif client in pong_clients: pong_clients.remove(client)
 
         # receiving clients
         if message.decode()[0:2] == 'IP':
             clients.append(eval(message.decode()[2:]))
+            just_joined_clients.append(eval(message.decode()[2:]))
+            just_joined_clients.append(time.time())
 
         # making players cords list
         elif message.decode().split(',')[1] == "PSS":
@@ -199,8 +204,14 @@ def receive():
         # enemies hurt :(
         elif message.decode().split(',')[1] == "HURT":
             index = int(message.decode().split(',')[2])
+            if enemies_died[index]: continue
             damage = int(message.decode().split(',')[3])
-            enemies_health[index] -= damage
+            if enemies_health[index] - damage <= 0:
+                enemies_health[index] = 0
+            elif enemies_health[index] > 0:
+                enemies_health[index] -= damage
+            else:
+                enemies_health[index] = 0
 
         # take care of message
         if message.decode().split(',')[1] in ["MDROP", "PDROP", "WAT", "MAT", "PSS"]:
@@ -210,21 +221,32 @@ def receive():
 def broadcast():
     while True:
         while not messages.empty():
+            if len(just_joined_clients) > 1:
+                for i in range(1, len(just_joined_clients), 2):
+                    if time.time() - just_joined_clients[i] >= PING_PONG_COOLDOWN:
+                        just_joined_clients.pop(i)
+                        just_joined_clients.pop(i-1)
+                    if i + 2 >= len(just_joined_clients): break
+
             message, addr = messages.get()
             for client_index, client in enumerate(clients):
                 # ping pong!
-                if time.time() - ping_pong_time[0] >= PING_PONG_COOLDOWN:
+                if client not in just_joined_clients and time.time() - ping_pong_time[0] >= PING_PONG_COOLDOWN:
                     send_response(slave, f'SERVER,PING'.encode(), public_key, private_key, client)
-                    ping_pong_time[0] = time.time()
-                    ping_pong[0] = True
+                    if client_index == len(clients) - 1:
+                        ping_pong_time[0] = time.time()
+                        ping_pong[0] = True
+                # prevent errors
+                if len(clients) != len(list(players_dict.keys())): continue
                 # kill clients who don't pong
                 for client_to_kill in clients_to_kill:
                     username = list(players_dict.keys())[clients.index(client_to_kill)]
-                    print(username, client)
+                    print(f'{username} is no more')
                     send_response(slave, f'SERVER,KILL,{username}'.encode(), public_key, private_key, client)
-                    players_dict.pop(username)
-                    clients.remove(client_to_kill)
-                    clients_to_kill.remove(client_to_kill)
+                    if client_index == len(clients) - 1:
+                        players_dict.pop(username)
+                        clients.remove(client_to_kill)
+                        clients_to_kill.remove(client_to_kill)
                 # don't send pkts from client to the same client
                 if addr == client and len(clients) != 1:
                     continue
@@ -235,18 +257,17 @@ def broadcast():
                 elif message.decode().split(',')[1] == 'PSS':
                     # updating enemies
                     enemies()
-                    # prevent errors
-                    if len(clients) != len(list(players_dict.keys())): break
                     # making info msg about enemies
                     enemy_message = ''
                     for index, cords in enumerate(enemies_cords):
                         health = enemies_health[index]
                         status = get_status(cords, enemies_names[index])
+                        # prevent errors
+                        if len(list(players_dict.keys())) == client_index: continue
                         client_cords = list(players_dict.values())[client_index]
                         get_to_list_conditions = ((abs(float(cords[0]) - float(client_cords[0])) <= SCREEN_WIDTH and
                                                   abs(float(cords[1]) - float(client_cords[1])) <= SCREEN_HEIGHT) or
                                                   enemies_died[index])
-
                         # only send info about enemies near client
                         if get_to_list_conditions:
                             enemy_message += f',{cords},{status},{health},{index}'

@@ -197,14 +197,14 @@ class MyGame(arcade.Window):
         # enemies health
         for monster in self.enemies_list:
             if monster.name != 'Raccoon':
-                arcade.draw_text(monster.health, monster.center_x, monster.center_y + 34, arcade.color.WHITE, 14)
+                arcade.draw_text(monster.health, monster.center_x, monster.center_y + 34, arcade.color.BLACK, 14)
             else:
-                arcade.draw_text(monster.health, monster.center_x, monster.center_y + 104, arcade.color.WHITE, 14)
+                arcade.draw_text(monster.health, monster.center_x, monster.center_y + 104, arcade.color.BLACK, 14)
 
         # players health
         for p_name, p_sprite in self.players.items():
             arcade.draw_text(p_name + "  " + str(p_sprite.health), p_sprite.center_x - 34, p_sprite.center_y + 34,
-                             arcade.color.WHITE, 14)
+                             arcade.color.BLACK, 14)
 
         # inventory
         self.ui.display()
@@ -449,7 +449,7 @@ class MyGame(arcade.Window):
     def damage_enemies(self):
         # the function name is pretty clear...
         for index, monster in enumerate(self.enemies_list):
-            if arcade.check_for_collision(self.player.current_attack, monster):
+            if arcade.check_for_collision(self.player.current_attack, monster) and monster.health > 0:
                 msg = f"{NAME},HURT,{index},{self.player.stats['attack']}"
                 send_message(game, msg.encode(), public_key, private_key, Server_ADDR)
 
@@ -514,7 +514,7 @@ class MyGame(arcade.Window):
         # the function name is pretty clear...
         if self.player.magic == 'flame':
             for index, monster in enumerate(self.enemies_list):
-                if arcade.check_for_collision(self.player.current_magic, monster):
+                if arcade.check_for_collision(self.player.current_magic, monster) and monster.health > 0:
                     hurt = f"{NAME},HURT,{index},{self.player.stats['attack']}"
                     send_message(game, hurt.encode(), public_key, private_key, Server_ADDR)
 
