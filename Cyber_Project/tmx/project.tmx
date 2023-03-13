@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.9" tiledversion="1.9.2" orientation="orthogonal" renderorder="right-down" width="60" height="60" tilewidth="64" tileheight="64" infinite="0" nextlayerid="30" nextobjectid="1">
  <editorsettings>
-  <export target="../../../../../../../../Networks/work/best project/map/map.json" format="json"/>
+  <export target="../map/map.json" format="json"/>
  </editorsettings>
- <tileset firstgid="1" source="../../../../../../../../Networks/work/best project/tsx/Floor.tsx"/>
- <tileset firstgid="551" source="../../../../../../../../Networks/work/best project/tsx/details.tsx"/>
- <tileset firstgid="631" source="../../../../../../../../Networks/work/best project/tsx/ground.tsx"/>
- <tileset firstgid="631" source="../../../../../../AppData/Roaming/Tiled/data/tsx/Floor.tsx"/>
- <tileset firstgid="1181" source="../../../../../../AppData/Roaming/Tiled/data/tsx/details.tsx"/>
+ <tileset firstgid="1" source="../tsx/Floor.tsx"/>
+ <tileset firstgid="551" source="../tsx/details.tsx"/>
+ <tileset firstgid="631" source="../tsx/ground.tsx"/>
+ <tileset firstgid="631" source="../tsx/Floor.tsx"/>
+ <tileset firstgid="1181" source="../tsx/details.tsx"/>
  <layer id="1" name="Ground" width="60" height="60">
   <data encoding="csv">
 905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,905,

@@ -328,6 +328,7 @@ while True:
 
 print('slave is up and running!')
 
+
 # t1 = threading.Thread(target=find_clients)
 t2 = threading.Thread(target=receive)
 t3 = threading.Thread(target=broadcast)

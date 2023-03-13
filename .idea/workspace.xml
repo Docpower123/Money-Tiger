@@ -7,11 +7,11 @@
     <list default="true" id="a781bd49-b636-4667-ba4a-e2233def3cc1" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cyber_Project/LoadBalancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/LoadBalancer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/female.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/female.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/male.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/male.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cyber_Project/map/map.json" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/map/map.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cyber_Project/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cyber_Project/slave 1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/slave 1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cyber_Project/tmx/bestmap.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/tmx/bestmap.tmx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cyber_Project/tmx/project.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/tmx/project.tmx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,10 +34,11 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Networks/work/only project"
+    "last_opened_file_path": "C:/Networks/work/only project",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
-  <component name="RunManager" selected="Python.client">
+  <component name="RunManager">
     <configuration name="Auth" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -46,7 +47,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/Security for server" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -60,15 +60,14 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="LoadBalancer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="LoadBalancer" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
+      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -90,7 +89,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/Security for server" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -112,7 +110,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/Security for server" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -134,7 +131,6 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -148,15 +144,14 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="female" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="female" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
+      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -170,15 +165,14 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="male" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="male" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
+      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -192,15 +186,14 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="slave 1" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="slave 1" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="SDK_NAME" value="Python 3.10" />
+      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />

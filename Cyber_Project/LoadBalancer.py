@@ -92,7 +92,7 @@ print('load balancer is up and running!')
 count = 0
 while True:
     data, addr = receive_message(loadbalancer, private_key, public_key)
-    if str(addr[1]).startswith('9'):
+    if data == b'hoi':
         slaves.append(addr)
         send_response(loadbalancer, f'done'.encode(), public_key, private_key, addr)
         count += 1

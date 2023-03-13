@@ -153,23 +153,23 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/Floor.tsx"
+         "source":"..\/map\/tsx\/Floor.tsx"
         }, 
         {
          "firstgid":551,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/details.tsx"
+         "source":"..\/map\/tsx\/details.tsx"
         }, 
         {
          "firstgid":631,
-         "source":"..\/..\/..\/..\/..\/..\/..\/..\/Networks\/work\/best project\/tsx\/ground.tsx"
+         "source":"..\/map\/tsx\/ground.tsx"
         }, 
         {
          "firstgid":631,
-         "source":"..\/..\/..\/..\/..\/..\/AppData\/Roaming\/Tiled\/data\/tsx\/Floor.tsx"
+         "source":"..\/map\/tsx\/Floor.tsx"
         }, 
         {
          "firstgid":1181,
-         "source":"..\/..\/..\/..\/..\/..\/AppData\/Roaming\/Tiled\/data\/tsx\/details.tsx"
+         "source":"..\/map\/tsx\/details.tsx"
         }],
  "tilewidth":64,
  "type":"map",
