@@ -108,16 +108,8 @@ while True:
 
 
 # ------------------- to fix / to add -------------------
-# chat! login and save! (not my job)
-# enemies stuck barrier, enemies weird
-# arcade do not like the pergulot area
+# enemies move weird + takes time to move from 0,0
 
-# ------------------- what we have -------------------
-# synchronized enemies
-# synchronized animation
-# synchronized health
-# synchronized drops
-# synchronized weapons & magic
 
 # Structure: (USERNAME,TYPE,DATA)
 # Types:
@@ -128,3 +120,5 @@ while True:
     # MAT - magic attack - DATA=(magic_x,magic_y,status,name)
     # HURT - enemies hurt - DATA=(enemy_index,player_damage)
     # KILL - client is no more in game - DATA=(username)
+    # LOG - client logged in - DATA=(username)
+    # MSG - client sent message - DATA(message)

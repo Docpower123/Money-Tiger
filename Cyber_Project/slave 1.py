@@ -3,6 +3,7 @@ from settings import *
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization, hashes
 from random import choice
+import arcade
 import queue
 import threading
 import math
@@ -13,14 +14,10 @@ import random
 HOST = S1_IP
 PORT = S1_PORT
 ADDR = (HOST, PORT)
-PING_PONG_COOLDOWN = 10
+JOIN_COOLDOWN = 30
 clients = []
+chats = []
 messages = queue.Queue()
-ping_pong_time = [time.time()]
-ping_pong = [False]
-pong_clients = []
-clients_to_kill = []
-just_joined_clients = []
 
 
 # security functions
@@ -91,15 +88,15 @@ slave.bind(ADDR)
 send_response(slave, f'{ADDR}'.encode(), public_key, private_key, (LB_IP, LB_PORT))
 
 # Game
+layer_options = {LAYER_NAME_BARRIER: {"use_spatial_hash": True}}
+tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=layer_options)
 players_dict = {}
-enemies_cords = []
+enemies_sprites_list = []
+enemies_physics = []
 enemies_names = []
 enemies_health = []
 enemies_died = []
 enemies_died_time = []
-enemies_movement_options = []
-auto_move_time = []
-auto_move_time2 = []
 
 
 # ------------------ enemies ------------------
@@ -144,9 +141,11 @@ def get_status(e_pos, name):
         return 'idle'
 
 
-def e_move(e_pos):
+def e_move(sprite):
     # move
-    e_pos = e_pos[0] + get_player_distance_direction(e_pos)[1][0], e_pos[1] + get_player_distance_direction(e_pos)[1][1]
+    e_pos = sprite.center_x, sprite.center_y
+    e_pos = (e_pos[0] + get_player_distance_direction(e_pos)[1][0]*3,
+             e_pos[1] + get_player_distance_direction(e_pos)[1][1]*3)
 
     if e_pos[0] - 32 <= 439.8:  # left
         e_pos = 439.8, e_pos[1]
@@ -157,15 +156,22 @@ def e_move(e_pos):
     elif e_pos[1] - 32 <= 525:  # down
         e_pos = e_pos[0], 525
 
+    # Check for out-of-bounds
+    if sprite.left < MAP_LEFT:
+        sprite.left = 0
+    if sprite.bottom < MAP_DOWN:
+        sprite.bottom = 0
+
     return e_pos
 
 
 def enemies():
     # enemies update
-    for index, e_pos in enumerate(enemies_cords):
-        status = get_status(e_pos, enemies_names[index])
+    for index, sprite in enumerate(enemies_sprites_list):
+        status = get_status((sprite.center_x, sprite.center_y), enemies_names[index])
+        enemies_physics[index].update()
         if not status == 'attack':
-            enemies_cords[index] = e_move(e_pos)
+            sprite.center_x, sprite.center_y = e_move(sprite)
 
 
 # ------------------ server ------------------
@@ -174,24 +180,22 @@ def enemies():
 def receive():
     while True:
         message, addr = receive_message(slave, private_key, public_key)
-        if ping_pong[0]:
-            # get pong packets
-            if message.decode().split(',')[1] == "PONG":
-                pong_clients.append(addr)
-            # kill clients who do not pong
-            if time.time() - ping_pong_time[0] >= PING_PONG_COOLDOWN:
-                for client_index, client in enumerate(clients):
-                    ping_pong[0] = False
-                    if client not in pong_clients and client not in just_joined_clients:
-
-                        clients_to_kill.append(client)
-                    elif client in pong_clients: pong_clients.remove(client)
 
         # receiving clients
         if message.decode()[0:2] == 'IP':
             clients.append(eval(message.decode()[2:]))
-            just_joined_clients.append(eval(message.decode()[2:]))
-            just_joined_clients.append(time.time())
+
+        elif message.decode()[0:4] == 'CHAT':
+            chats.append(eval(message.decode()[5:]))
+
+        elif message.decode().split(',')[1] == "KILL":
+            for client_index, client in enumerate(clients):
+                username = message.decode().split(',')[0]
+                print(f'{username} is no more')
+                send_response(slave, f'SERVER,KILL,{username}'.encode(), public_key, private_key, client)
+                if client_index == len(clients) - 1:
+                    players_dict.pop(username)
+                    clients.remove(addr)
 
         # making players cords list
         elif message.decode().split(',')[1] == "PSS":
@@ -199,7 +203,20 @@ def receive():
             if name in players_dict.keys():
                 players_dict[name] = (message.decode().split(',')[2], message.decode().split(',')[3])
             else:
+                # new client!
+                # update players dict of slave
                 players_dict.update({name: (message.decode().split(',')[2], message.decode().split(',')[3])})
+                if len(clients) != 1:
+                    # sending clients list to new client
+                    msg = f'SERVER,LOG'
+                    for player_name in list(players_dict.keys()):
+                        if player_name == name: continue
+                        msg += f',{player_name}'
+                    send_response(slave, msg.encode(), public_key, private_key, addr)
+                    # sending info about new client to all clients
+                    for client in clients:
+                        if client == addr: continue
+                        send_response(slave, f'SERVER,LOG,{name}'.encode(), public_key, private_key, client)
 
         # enemies hurt :(
         elif message.decode().split(',')[1] == "HURT":
@@ -214,39 +231,22 @@ def receive():
                 enemies_health[index] = 0
 
         # take care of message
-        if message.decode().split(',')[1] in ["MDROP", "PDROP", "WAT", "MAT", "PSS"]:
+        if message.decode().split(',')[1] in ["MDROP", "PDROP", "WAT", "MAT", "PSS", "MSG"]:
             messages.put((message, addr))
 
 
 def broadcast():
     while True:
         while not messages.empty():
-            if len(just_joined_clients) > 1:
-                for i in range(1, len(just_joined_clients), 2):
-                    if time.time() - just_joined_clients[i] >= PING_PONG_COOLDOWN:
-                        just_joined_clients.pop(i)
-                        just_joined_clients.pop(i-1)
-                    if i + 2 >= len(just_joined_clients): break
-
             message, addr = messages.get()
+            if message.decode().split(',')[1] == "MSG":
+                for chat in chats:
+                    if chat == addr: continue
+                    send_response(slave, message, public_key, private_key, chat)
+
             for client_index, client in enumerate(clients):
-                # ping pong!
-                if client not in just_joined_clients and time.time() - ping_pong_time[0] >= PING_PONG_COOLDOWN:
-                    send_response(slave, f'SERVER,PING'.encode(), public_key, private_key, client)
-                    if client_index == len(clients) - 1:
-                        ping_pong_time[0] = time.time()
-                        ping_pong[0] = True
                 # prevent errors
                 if len(clients) != len(list(players_dict.keys())): continue
-                # kill clients who don't pong
-                for client_to_kill in clients_to_kill:
-                    username = list(players_dict.keys())[clients.index(client_to_kill)]
-                    print(f'{username} is no more')
-                    send_response(slave, f'SERVER,KILL,{username}'.encode(), public_key, private_key, client)
-                    if client_index == len(clients) - 1:
-                        players_dict.pop(username)
-                        clients.remove(client_to_kill)
-                        clients_to_kill.remove(client_to_kill)
                 # don't send pkts from client to the same client
                 if addr == client and len(clients) != 1:
                     continue
@@ -259,7 +259,8 @@ def broadcast():
                     enemies()
                     # making info msg about enemies
                     enemy_message = ''
-                    for index, cords in enumerate(enemies_cords):
+                    for index, sprite in enumerate(enemies_sprites_list):
+                        cords = (sprite.center_x, sprite.center_y)
                         health = enemies_health[index]
                         status = get_status(cords, enemies_names[index])
                         # prevent errors
@@ -277,7 +278,7 @@ def broadcast():
                         # death! and revive...
                         if health <= 0:
                             # create enemies drops
-                            drop_pos = enemies_cords[index]
+                            drop_pos = (enemies_sprites_list[index].center_x, enemies_sprites_list[index].center_y)
                             drop_names = [choice(enemy_data[enemies_names[index]]['drop']),
                                           choice(enemy_data[enemies_names[index]]['drop'])]
                             for loop_client in clients:
@@ -291,9 +292,10 @@ def broadcast():
                             # other stuff
                             enemies_died_time[index] = time.time()
                             enemies_died[index] = True
-                            enemies_cords[index] = (
-                                random.randint(MAP_LEFT, MAP_RIGHT),
-                                random.randint(MAP_DOWN, MAP_UP))
+                            enemies_sprites_list[index].center_x, enemies_sprites_list[index].center_y = (
+                            random.randint(SPAWN["left"], SPAWN["right"]), random.randint(
+                                SPAWN["down"],
+                                SPAWN["up"]))
                             enemies_health[index] = enemy_data[enemies_names[index]]['health']
 
                     # actually sending the info
@@ -303,6 +305,7 @@ def broadcast():
 
 # ------------------ main ------------------
 # enemies start
+walls = tile_map.sprite_lists[LAYER_NAME_BARRIER]
 for i in range(ENEMIES_NUM):  # setup the enemies
     if i == 0:
         name = 'Raccoon'
@@ -312,14 +315,25 @@ for i in range(ENEMIES_NUM):  # setup the enemies
         name = 'Spirit'
     else:
         name = 'Bamboo'
-    enemies_cords.append((random.randint(MAP_LEFT, MAP_RIGHT), random.randint(MAP_DOWN, MAP_UP)))
+    # making sprite
+    enemy = arcade.Sprite(enemy_data[name]['filename'])
+    enemy.center_x, enemy.center_y = (random.randint(SPAWN["left"], SPAWN["right"]), random.randint(
+                SPAWN["down"],
+                SPAWN["up"]))
+    enemies_sprites_list.append(enemy)
+    walls.append(enemy)
+    # lists adding
     enemies_names.append(enemy_data[name]['layer'])
     enemies_health.append(enemy_data[name]['health'])
     enemies_died.append(False)
     enemies_died_time.append(time.time())
-    enemies_movement_options.append([(0, 1), (0, -1), (1, 0), (-1, 0)])
-    auto_move_time.append(time.time())
-    auto_move_time2.append(time.time())
+
+# physics
+for sprite in enemies_sprites_list:
+    walls.remove(sprite)
+    physic = arcade.PhysicsEngineSimple(sprite, walls)
+    enemies_physics.append(physic)
+    walls.append(sprite)
 
 while True:
     data, addr = receive_message(slave, private_key, public_key)
