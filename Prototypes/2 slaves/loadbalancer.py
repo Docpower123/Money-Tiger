@@ -1,85 +1,67 @@
 import socket
-import json
-import time
+from sklearn.cluster import KMeans
+import numpy as np
+import matplotlib.pyplot as plt
 
-# Define the list of servers and their current loads
-servers = {
-    'server1': {
-        'address': ('localhost', 6000),
-        'load': 0,
-        'health': True
-    },
-    'server2': {
-        'address': ('localhost', 6002),
-        'load': 0,
-        'health': True
-    },
-    'server3': {
-        'address': ('localhost', 6003),
-        'load': 0,
-        'health': True
-    }
-}
+# Server configuration
+SERVER_HOST = "localhost"
+SERVER_PORT = 6000
 
-# Define the health check interval and timeout
-HEALTH_CHECK_INTERVAL = 5  # seconds
-HEALTH_CHECK_TIMEOUT = 2   # seconds
+# Slave servers configuration
+SLAVE_SERVERS = [('localhost', 7001), ('localhost', 7002)]
 
-# Create a UDP socket and bind it to a specific port
-load_balancer_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-load_balancer_socket.bind(('localhost', 9000))
 
-# Perform initial health checks on servers
-for server_name, server_info in servers.items():
-    server_address = server_info['address']
-    try:
-        load_balancer_socket.sendto(b'health_check', server_address)
-        response, _ = load_balancer_socket.recvfrom(1024)
-        if response.decode() == 'ok':
-            print(f"Server {server_name} at address {server_address} is up")
-        else:
-            print(f"Server {server_name} at address {server_address} is down")
-            server_info['health'] = False
-    except Exception as e:
-        print(f"Server {server_name} at address {server_address} is down: {e}")
-        server_info['health'] = False
+def find_most_populated_area(player_coords, margin=5):
+    # Perform K-means clustering with k=2
+    kmeans = KMeans(n_clusters=2).fit(player_coords)
+    labels = kmeans.labels_
+    centroids = kmeans.cluster_centers_
+
+    # Find the largest cluster and return its center coordinates
+    largest_cluster_label = max(set(labels), key=labels.tolist().count)
+    largest_cluster_center = centroids[largest_cluster_label]
+
+    # Find the coordinates of the bounding box of the largest cluster
+    largest_cluster_points = np.array([p for i, p in enumerate(player_coords) if labels[i] == largest_cluster_label])
+    x_min, y_min = np.min(largest_cluster_points, axis=0) - margin
+    x_max, y_max = np.max(largest_cluster_points, axis=0) + margin
+
+    # Find all players within the bounding box of the largest cluster
+    players_in_area = [players_loc[0][i] for i, p in enumerate(players_loc[1]) if
+                       x_min <= p[0] <= x_max and y_min <= p[1] <= y_max]
+
+    return largest_cluster_center, x_min, y_min, x_max, y_max, players_in_area
+
+
+# Create a UDP socket and bind it to a specific address and port
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server_socket.bind(('localhost', 6000))
+
+players_loc = [[], []]  # [player_ids], [player_coords]
 
 while True:
-    # Perform health checks on servers at regular intervals
-    time.sleep(HEALTH_CHECK_INTERVAL)
-    for server_name, server_info in servers.items():
-        if not server_info['health']:
-            continue
-        server_address = server_info['address']
-        try:
-            load_balancer_socket.sendto(b'health_check', server_address)
-            response, _ = load_balancer_socket.recvfrom(1024)
-            if response.decode() != 'ok':
-                print(f"Server {server_name} at address {server_address} is down")
-                server_info['health'] = False
-        except Exception as e:
-            print(f"Server {server_name} at address {server_address} is down: {e}")
-            server_info['health'] = False
+    # Receive a message and the address of the sender
+    message, addr = server_socket.recvfrom(1024)
+    message = message.decode()
+    if message.startswith('loc:'):
+        print(message.split(':')[1].split(','))
+        player_id, x, y = message.split(':')[1].split(',')
+        x, y = float(x), float(y)
+        # Update the location for a user
+        if player_id in players_loc[0]:
+            index = players_loc[0].index(player_id)
+            players_loc[1][index] = (x, y)
+        else:
+            players_loc[0].append(player_id)
+            players_loc[1].append((x, y))
+        print(f"Received location from player {player_id}: ({x}, {y})")
 
-    # Receive a message from a client
-    message, address = load_balancer_socket.recvfrom(1024)
+        # Find the most populated area
+        if len(players_loc[0]) > 1:
+            center, x_min, y_min, x_max, y_max, players_in_area = find_most_populated_area(players_loc[1])
+            message = f"area:{center[0]},{center[1]};{x_min},{y_min};{x_max},{y_max};{','.join(players_in_area)}".encode()
+            print(f"Sending area to players: {message.decode()}")
 
-    # Find the least loaded and healthy server
-    least_loaded_server = None
-    for server_name, server_info in servers.items():
-        if server_info['health']:
-            if least_loaded_server is None or server_info['load'] < servers[least_loaded_server]['load']:
-                least_loaded_server = server_name
-
-    if least_loaded_server is None:
-        print("No healthy servers available")
-        continue
-
-    # Forward the message to the least loaded and healthy server
-    server_address = servers[least_loaded_server]['address']
-    load_balancer_socket.sendto(message, server_address)
-
-    # Increment the load of the least loaded server
-    servers[least_loaded_server]['load'] += 1
-
-load_balancer_socket.close()
+            # Send the area message to one of the slave servers based on a simple round-robin algorithm
+            next_slave_server = SLAVE_SERVERS[len(players_loc[0]) % len(SLAVE_SERVERS)]
+            server_socket.sendto(message, next_slave_server)

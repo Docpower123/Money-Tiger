@@ -1,6 +1,6 @@
 # Server
 
-IP = '192.168.68.106'
+IP = '192.168.56.1'
 RECV_SIZE = 4000
 PSS_COOLDOWN = 0.1
 
@@ -36,7 +36,7 @@ SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
 MUSIC_VOLUME = 0
 ENEMIES_NUM = 5
-TILED_MAP = '.\\map\\map.json'
+TILED_MAP = '.\\map\\bestmap.json'
 
 # best map
 MAP_RIGHT = 28635
@@ -45,20 +45,6 @@ MAP_UP = 19724
 MAP_DOWN = 525
 
 SPAWN = {'right': 28571, 'left': 504, 'up': 19660, 'down': 589}
-
-# map
-MAP_RIGHT = 2000
-MAP_LEFT = 0
-MAP_UP = 2000
-MAP_DOWN = 0
-
-SPAWN = {'right': 2000, 'left': 64, 'up': 2000, 'down': 64}
-
-# music!
-DEFAULT_MUSIC = './audio/never.mp3'
-POTION_MUSIC = './audio/gimme.mp3'
-POTION1_MUSIC = './audio/goni.ogg'
-
 
 # entity
 ENTITY_SIZE = 1
