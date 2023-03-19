@@ -3,7 +3,7 @@ from settings import *
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization, hashes
 from random import choice
-import arcade
+from arcade import load_tilemap, Sprite, PhysicsEngineSimple
 import queue
 import threading
 import math
@@ -11,7 +11,8 @@ import time
 import random
 
 # parameters for the server to use
-HOST = S1_IP
+HOST = '172.17.0.1'
+print(f'SLAVE host is {HOST}')
 PORT = S1_PORT
 ADDR = (HOST, PORT)
 JOIN_COOLDOWN = 30
@@ -38,6 +39,7 @@ def load_public_key(filename):
 
 def receive_message(server_socket, private_key, public_key):
     data, client_address = server_socket.recvfrom(RECV_SIZE)
+    print("slave receive_message")
     signature, encrypted_message = data[:256], data[256:]
     try:
         public_key.verify(
@@ -62,6 +64,7 @@ def receive_message(server_socket, private_key, public_key):
 
 
 def send_response(server_socket, response, public_key, private_key, client_address):
+    print('send_response')
     encrypted_response = public_key.encrypt(
         response,
         padding.OAEP(
@@ -85,11 +88,13 @@ public_key = load_public_key("public_key.pem")
 # setting up the server
 slave = socket(AF_INET, SOCK_DGRAM)
 slave.bind(ADDR)
-send_response(slave, f'{ADDR}'.encode(), public_key, private_key, (LB_IP, LB_PORT))
+send_response(slave, f'{ADDR}'.encode(), public_key, private_key, (gethostbyname(gethostname()), LB_PORT))
 
 # Game
 layer_options = {LAYER_NAME_BARRIER: {"use_spatial_hash": True}}
-tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=layer_options)
+import pathlib
+TILED_MAP = pathlib.Path("./map/map.json")
+tile_map = load_tilemap(TILED_MAP, TILE_SIZE, layer_options=layer_options)
 players_dict = {}
 enemies_sprites_list = []
 enemies_physics = []
@@ -316,7 +321,7 @@ for i in range(ENEMIES_NUM):  # setup the enemies
     else:
         name = 'Bamboo'
     # making sprite
-    enemy = arcade.Sprite(enemy_data[name]['filename'])
+    enemy = Sprite(enemy_data[name]['filename'])
     enemy.center_x, enemy.center_y = (random.randint(SPAWN["left"], SPAWN["right"]), random.randint(
                 SPAWN["down"],
                 SPAWN["up"]))
@@ -331,7 +336,7 @@ for i in range(ENEMIES_NUM):  # setup the enemies
 # physics
 for sprite in enemies_sprites_list:
     walls.remove(sprite)
-    physic = arcade.PhysicsEngineSimple(sprite, walls)
+    physic = PhysicsEngineSimple(sprite, walls)
     enemies_physics.append(physic)
     walls.append(sprite)
 
@@ -349,6 +354,3 @@ t3 = threading.Thread(target=broadcast)
 # t1.start()
 t2.start()
 t3.start()
-
-
-

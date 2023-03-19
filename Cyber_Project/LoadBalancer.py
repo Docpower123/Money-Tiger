@@ -7,7 +7,8 @@ clients = []
 slaves = []
 
 # parameters for the server to use
-HOST = LB_IP
+HOST = '172.17.0.1'
+print(f'LB host is {HOST}')
 PORT = LB_PORT
 ADDR = (HOST, PORT)
 
@@ -102,9 +103,12 @@ while True:
 while True:
     # begin work with clients:
     data, addr = receive_message(loadbalancer, private_key, public_key)
+    print("lb receive_message")
     if addr not in clients and addr not in slaves:
         clients.append(addr)
         handle_new_user(addr)
+    if data.decode()[0:4] == "KILL":
+        clients.remove((eval(data.decode()[5:])))
 
 
 # ------------------- to fix / to add -------------------

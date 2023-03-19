@@ -1,3 +1,7 @@
+import sys
+print(sys.path)
+import os
+os.system("pip list")
 import threading
 import queue
 import arcade
@@ -20,10 +24,12 @@ from tkinter import *
 from tkinter import messagebox
 import mysql.connector
 from chat import run_chat
+from socket import gethostname, gethostbyname
+
 
 
 #connecting to the database
-db = mysql.connector.connect(host="localhost",user="root",passwd="P123321p",database="dblogin")
+db = mysql.connector.connect(host="localhost",user="client",passwd="P123321p",database="dblogin", auth_plugin='mysql_native_password')
 mycur = db.cursor()
 
 def error_destroy():
@@ -59,7 +65,7 @@ def register_user():
     elif password_info == "":
         error()
     else:
-        sql = "insert into dblogin values(%s,%s)"
+        sql = "insert into dblogin (Username, Password) values(%s,%s)"
         t = (username_info, password_info)
         mycur.execute(sql, t)
         db.commit()
@@ -98,6 +104,11 @@ def login():
     Label(root2, text="Login", bg="grey", fg="black", font="bold",width=300).pack()
     username_varify = StringVar()
     password_varify = StringVar()
+    global lb_ip
+    lb_ip = StringVar()
+    Label(root2, text="").pack()
+    Label(root2, text="IP :", font="bold").pack()
+    Entry(root2, textvariable=lb_ip).pack()
     Label(root2, text="").pack()
     Label(root2, text="Username :", font="bold").pack()
     Entry(root2, textvariable=username_varify).pack()
@@ -140,6 +151,8 @@ def failed():
 def login_varify():
     user_varify = username_varify.get()
     pas_varify = password_varify.get()
+    global LB_IP
+    LB_IP = lb_ip.get()
     sql = "select * from dblogin where Username = %s and Password = %s"
     mycur.execute(sql,[(user_varify),(pas_varify)])
     results = mycur.fetchall()
@@ -242,9 +255,8 @@ def receive_response(client_socket, private_key, public_key):
 main_screen()
 root.mainloop()
 
-
 # parameters for the server to use
-ADDR = (CLIENT_IP, CLIENT_PORT)
+ADDR = (gethostbyname(gethostname()), random.randint(7000, 8999))
 Server_ADDR = (LB_IP, LB_PORT)
 messages = queue.Queue()
 
@@ -274,7 +286,7 @@ def get_info():
 
 def chat():
     while True:
-        run_chat(NAME)
+        run_chat(NAME, Server_ADDR[0])
 
 
 t = threading.Thread(target=get_info)
@@ -493,6 +505,7 @@ class MyGame(arcade.Window):
         if key == arcade.key.ESCAPE:
             # tell server about log out
             send_message(game, f'{NAME},KILL,{NAME}'.encode(), public_key, private_key, Server_ADDR)
+            send_message(game, f'KILL, {ADDR}'.encode(), public_key, private_key, (LB_IP, LB_PORT))
             # save stuff in database
             db_set_info('Pos', (f'{self.player.center_x},{self.player.center_y}', NAME))
             db_set_info('Health', (f'{self.player.health}', NAME))

@@ -5,18 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a46acb75-063c-4a00-9117-207a7e3d45a4" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Cyber_Project/chat.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/LoadBalancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/LoadBalancer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/female.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/female.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/male.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/male.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/map/bestmap.json" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/map/bestmap.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/player.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/player.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/slave 1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/slave 1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/tmx/bestmap.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/tmx/bestmap.tmx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,14 +31,14 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/איתי/OneDrive/מסמכים/GitHub/Money-Tiger/Cyber_Project&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "last_opened_file_path": "C:/Networks/work/Cyber_Project",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.female">
     <configuration name="Auth" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
@@ -229,11 +218,11 @@
     </configuration>
     <list>
       <item itemvalue="Python.Auth" />
-      <item itemvalue="Python.Secure_client" />
+      <item itemvalue="Python.LoadBalancer" />
       <item itemvalue="Python.Secure_Server" />
+      <item itemvalue="Python.Secure_client" />
       <item itemvalue="Python.client" />
       <item itemvalue="Python.female" />
-      <item itemvalue="Python.LoadBalancer" />
       <item itemvalue="Python.male" />
       <item itemvalue="Python.slave 1" />
     </list>
