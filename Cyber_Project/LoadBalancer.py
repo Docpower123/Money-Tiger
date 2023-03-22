@@ -2,13 +2,13 @@ from socket import *
 from settings import *
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization, hashes
+import mysql.connector
 
 clients = []
 slaves = []
 
 # parameters for the server to use
-HOST = '172.17.0.1'
-print(f'LB host is {HOST}')
+HOST = gethostbyname(gethostname())
 PORT = LB_PORT
 ADDR = (HOST, PORT)
 
@@ -77,7 +77,6 @@ def handle_new_user(addr):
     print('new client!', addr)
     server = slaves[0]
     send_response(loadbalancer, f'{server}'.encode(), public_key, private_key, addr)
-    send_response(loadbalancer, f'IP{addr}'.encode(), public_key, private_key, server)
 
 
 # Load the private key from the PEM encoded file
@@ -88,6 +87,10 @@ public_key = load_public_key("public_key.pem")
 loadbalancer = socket(AF_INET, SOCK_DGRAM)
 loadbalancer.bind(ADDR)
 print('load balancer is up and running!')
+
+# connecting to the database
+db = mysql.connector.connect(host="localhost",user="client",passwd="P123321p",database="dblogin", auth_plugin='mysql_native_password')
+mycur = db.cursor()
 
 # set up connection with slaves
 count = 0
@@ -103,16 +106,59 @@ while True:
 while True:
     # begin work with clients:
     data, addr = receive_message(loadbalancer, private_key, public_key)
-    print("lb receive_message")
     if addr not in clients and addr not in slaves:
         clients.append(addr)
         handle_new_user(addr)
+
+    # save info in database
+    message = data
+    if message.decode().find(';') != -1 and message.decode().split(';')[1] == "DBS":
+        messag = message.decode().split(';')
+        info_name = messag[2]
+        for i in range(3):
+            messag.pop(0)
+        t = tuple(messag)
+        sql = f"update dblogin set {info_name} = %s where Username = %s"
+        mycur.execute(sql, t)
+        db.commit()
+
+    # get info from database
+    elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "DBG":
+        messag = message.decode().split(',')
+        info_name = messag[2]
+        user_password = messag[3]
+        user_name = messag[0]
+        # get info from database
+        sql = f"select {info_name} from dblogin where Username = %s and Password = %s"
+        mycur.execute(sql, [(user_name), (user_password)])
+        info = mycur.fetchall()
+        # send info to client
+        send_response(loadbalancer, f"SERVER,DBG,{info[0][0]}".encode(), public_key, private_key, addr)
+
+    # log varify
+    elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "LV":
+        user_varify = message.decode().split(',')[2]
+        pass_varify = message.decode().split(',')[3]
+        sql = "select * from dblogin where Username = %s and Password = %s"
+        mycur.execute(sql, [(user_varify), (pass_varify)])
+        results = mycur.fetchall()
+        if results:
+            send_response(loadbalancer, "SERVER,LV,T".encode(), public_key, private_key, addr)
+        else:
+            send_response(loadbalancer, "SERVER,LV,F".encode(), public_key, private_key, addr)
+
+    # register new clients
+    elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "REG":
+        username = message.decode().split(',')[2]
+        password = message.decode().split(',')[3]
+        print(username, password)
+        sql = "insert into dblogin (Username, Password) values(%s,%s)"
+        t = (username, password)
+        mycur.execute(sql, t)
+        db.commit()
+
     if data.decode()[0:4] == "KILL":
-        clients.remove((eval(data.decode()[5:])))
-
-
-# ------------------- to fix / to add -------------------
-# enemies move weird + takes time to move from 0,0
+        clients.remove(addr)
 
 
 # Structure: (USERNAME,TYPE,DATA)
@@ -125,4 +171,11 @@ while True:
     # HURT - enemies hurt - DATA=(enemy_index,player_damage)
     # KILL - client is no more in game - DATA=(username)
     # LOG - client logged in - DATA=(username)
+    # MSG - client sent message - DATA=(message)
+    # REG - client register - DATA=(username,password)
+    # LV (from client) - client login varify - DATA=(username,password)
+    # LV (from server) - server response if login succeed or failed - DATA=(T/F)
+    # DBS - set info in database - DATA=(info_name,t)
+    # DBG (from client) - ask for info which in database - DATA=(info_name,user_password)
+    # DBG (from server) - return info which in database - DATA=(info)
     # MSG - client sent message - DATA(message)

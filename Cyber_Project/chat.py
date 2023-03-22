@@ -69,8 +69,7 @@ def receive_response(client_socket, private_key, public_key):
 
 
 # parameters for the server to use
-Server_ADDR = (S1_IP, S1_PORT)
-ADDR = (CHAT_IP, random.randint(3000, 5999))
+ADDR = (gethostbyname(gethostname()), random.randint(3000, 5999))
 messages = queue.Queue()
 
 # Load the private key from the PEM encoded file
@@ -80,7 +79,6 @@ public_key = load_public_key("public_key.pem")
 # setting up the server
 chat = socket(AF_INET, SOCK_DGRAM)
 chat.bind(ADDR)
-send_msg(chat, f'CHAT, {ADDR}'.encode(), public_key, private_key, Server_ADDR)
 
 
 def get_info():
@@ -189,10 +187,13 @@ class ChatApp:
         root.after(100, self.get_message)
 
 
-def run_chat(Username):
+def run_chat(Username, slave_ip):
     global username
     username = Username
     t.start()
+    global Server_ADDR
+    Server_ADDR = (slave_ip, S1_PORT)
+    send_msg(chat, f'CHAT, {ADDR}'.encode(), public_key, private_key, Server_ADDR)
 
     global root
     root = tk.Tk()

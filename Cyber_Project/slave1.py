@@ -9,10 +9,11 @@ import threading
 import math
 import time
 import random
+import pathlib
+
 
 # parameters for the server to use
-HOST = '172.17.0.1'
-print(f'SLAVE host is {HOST}')
+HOST = gethostbyname(gethostname())
 PORT = S1_PORT
 ADDR = (HOST, PORT)
 JOIN_COOLDOWN = 30
@@ -31,15 +32,14 @@ def load_private_key(filename):
     return private_key
 
 
-def load_public_key(filename):
+def load_public_key(filename: str):
     with open(filename, "rb") as f:
         public_key = serialization.load_pem_public_key(f.read())
     return public_key
 
 
-def receive_message(server_socket, private_key, public_key):
+def receive_message(server_socket: socket, private_key, public_key):
     data, client_address = server_socket.recvfrom(RECV_SIZE)
-    print("slave receive_message")
     signature, encrypted_message = data[:256], data[256:]
     try:
         public_key.verify(
@@ -64,7 +64,6 @@ def receive_message(server_socket, private_key, public_key):
 
 
 def send_response(server_socket, response, public_key, private_key, client_address):
-    print('send_response')
     encrypted_response = public_key.encrypt(
         response,
         padding.OAEP(
@@ -92,7 +91,7 @@ send_response(slave, f'{ADDR}'.encode(), public_key, private_key, (gethostbyname
 
 # Game
 layer_options = {LAYER_NAME_BARRIER: {"use_spatial_hash": True}}
-import pathlib
+
 TILED_MAP = pathlib.Path("./map/map.json")
 tile_map = load_tilemap(TILED_MAP, TILE_SIZE, layer_options=layer_options)
 players_dict = {}
@@ -185,25 +184,22 @@ def enemies():
 def receive():
     while True:
         message, addr = receive_message(slave, private_key, public_key)
-
-        # receiving clients
-        if message.decode()[0:2] == 'IP':
-            clients.append(eval(message.decode()[2:]))
-
-        elif message.decode()[0:4] == 'CHAT':
+        # receiving chats
+        if message.decode()[0:4] == 'CHAT':
             chats.append(eval(message.decode()[5:]))
 
-        elif message.decode().split(',')[1] == "KILL":
+        # clients log out
+        elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "KILL":
             for client_index, client in enumerate(clients):
                 username = message.decode().split(',')[0]
-                print(f'{username} is no more')
                 send_response(slave, f'SERVER,KILL,{username}'.encode(), public_key, private_key, client)
                 if client_index == len(clients) - 1:
                     players_dict.pop(username)
                     clients.remove(addr)
 
         # making players cords list
-        elif message.decode().split(',')[1] == "PSS":
+        elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "PSS":
+            if addr not in clients: clients.append(addr)
             name = message.decode().split(',')[0]
             if name in players_dict.keys():
                 players_dict[name] = (message.decode().split(',')[2], message.decode().split(',')[3])
@@ -224,7 +220,7 @@ def receive():
                         send_response(slave, f'SERVER,LOG,{name}'.encode(), public_key, private_key, client)
 
         # enemies hurt :(
-        elif message.decode().split(',')[1] == "HURT":
+        elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "HURT":
             index = int(message.decode().split(',')[2])
             if enemies_died[index]: continue
             damage = int(message.decode().split(',')[3])
@@ -236,7 +232,7 @@ def receive():
                 enemies_health[index] = 0
 
         # take care of message
-        if message.decode().split(',')[1] in ["MDROP", "PDROP", "WAT", "MAT", "PSS", "MSG"]:
+        if message.decode().find(',') != -1 and message.decode().split(',')[1] in ["MDROP", "PDROP", "WAT", "MAT", "PSS", "MSG"]:
             messages.put((message, addr))
 
 
@@ -354,3 +350,6 @@ t3 = threading.Thread(target=broadcast)
 # t1.start()
 t2.start()
 t3.start()
+
+
+
