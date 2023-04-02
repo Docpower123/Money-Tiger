@@ -3,6 +3,8 @@ from settings import *
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization, hashes
 import mysql.connector
+import hashlib
+import bcrypt
 
 clients = []
 slaves = []
@@ -11,6 +13,21 @@ slaves = []
 HOST = gethostbyname(gethostname())
 PORT = LB_PORT
 ADDR = (HOST, PORT)
+
+def hash_password(password):
+    # Convert password to bytes
+    password_bytes = password.encode('utf-8')
+
+    # Generate a salt for the password
+    salt = bcrypt.gensalt()
+
+    # Hash the password with the salt
+    hashed_password_bytes = bcrypt.hashpw(password_bytes, salt)
+
+    # Convert the hashed password to a string for database storage
+    hashed_password_str = hashed_password_bytes.decode('utf-8')
+
+    return hashed_password_str
 
 
 def load_private_key(filename):
@@ -111,20 +128,21 @@ while True:
         handle_new_user(addr)
 
     # save info in database
-    message = data
-    if message.decode().find(';') != -1 and message.decode().split(';')[1] == "DBS":
-        messag = message.decode().split(';')
+    elif data.decode().find(';') != -1 and data.decode().split(';')[1] == "DBS":
+        messag = data.decode().split(';')
         info_name = messag[2]
         for i in range(3):
             messag.pop(0)
+        messag = [hash_password(m) for m in messag]
         t = tuple(messag)
         sql = f"update dblogin set {info_name} = %s where Username = %s"
         mycur.execute(sql, t)
         db.commit()
 
+
     # get info from database
-    elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "DBG":
-        messag = message.decode().split(',')
+    elif data.decode().find(',') != -1 and data.decode().split(',')[1] == "DBG":
+        messag = data.decode().split(',')
         info_name = messag[2]
         user_password = messag[3]
         user_name = messag[0]
@@ -136,9 +154,9 @@ while True:
         send_response(loadbalancer, f"SERVER,DBG,{info[0][0]}".encode(), public_key, private_key, addr)
 
     # log varify
-    elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "LV":
-        user_varify = message.decode().split(',')[2]
-        pass_varify = message.decode().split(',')[3]
+    elif data.decode().find(',') != -1 and data.decode().split(',')[1] == "LV":
+        user_varify = data.decode().split(',')[2]
+        pass_varify = data.decode().split(',')[3]
         sql = "select * from dblogin where Username = %s and Password = %s"
         mycur.execute(sql, [(user_varify), (pass_varify)])
         results = mycur.fetchall()
