@@ -1,67 +1,106 @@
-import socket
-from sklearn.cluster import KMeans
-import numpy as np
-import matplotlib.pyplot as plt
-
-# Server configuration
-SERVER_HOST = "localhost"
-SERVER_PORT = 6000
-
-# Slave servers configuration
-SLAVE_SERVERS = [('localhost', 7001), ('localhost', 7002)]
+import pygame
 
 
-def find_most_populated_area(player_coords, margin=5):
-    # Perform K-means clustering with k=2
-    kmeans = KMeans(n_clusters=2).fit(player_coords)
-    labels = kmeans.labels_
-    centroids = kmeans.cluster_centers_
 
-    # Find the largest cluster and return its center coordinates
-    largest_cluster_label = max(set(labels), key=labels.tolist().count)
-    largest_cluster_center = centroids[largest_cluster_label]
-
-    # Find the coordinates of the bounding box of the largest cluster
-    largest_cluster_points = np.array([p for i, p in enumerate(player_coords) if labels[i] == largest_cluster_label])
-    x_min, y_min = np.min(largest_cluster_points, axis=0) - margin
-    x_max, y_max = np.max(largest_cluster_points, axis=0) + margin
-
-    # Find all players within the bounding box of the largest cluster
-    players_in_area = [players_loc[0][i] for i, p in enumerate(players_loc[1]) if
-                       x_min <= p[0] <= x_max and y_min <= p[1] <= y_max]
-
-    return largest_cluster_center, x_min, y_min, x_max, y_max, players_in_area
+server_list = [(21),(22)]
 
 
-# Create a UDP socket and bind it to a specific address and port
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_socket.bind(('localhost', 6000))
+# Define map size and player coordinates
+map_size = (400, 400)
+player_pos = (200, 100)
 
-players_loc = [[], []]  # [player_ids], [player_coords]
+# Define areas
+area_size = (map_size[0] // 2, map_size[1] // 2)
+area1 = pygame.Rect((0, 0), area_size)  # top-left area
+area2 = pygame.Rect((area_size[0], 0), area_size)  # top-right area
+area3 = pygame.Rect((0, area_size[1]), area_size)  # bottom-left area
+area4 = pygame.Rect(area_size, area_size)  # bottom-right area
 
+# Define buffer areas
+buffer_size = 10
+buffer1 = area1.inflate(buffer_size, buffer_size)
+buffer2 = area2.inflate(buffer_size, buffer_size)
+buffer3 = area3.inflate(buffer_size, buffer_size)
+buffer4 = area4.inflate(buffer_size, buffer_size)
+
+# Determine which areas the player's coordinates belong to
+area1_flag = buffer1.collidepoint(player_pos)
+area2_flag = buffer2.collidepoint(player_pos)
+area3_flag = buffer3.collidepoint(player_pos)
+area4_flag = buffer4.collidepoint(player_pos)
+
+# Determine which areas the player is in
+player_area = ""
+if area1_flag:
+    player_area += "1"
+if area2_flag:
+    player_area += "2"
+if area3_flag:
+    player_area += "3"
+if area4_flag:
+    player_area += "4"
+if not player_area:
+    player_area = "none"
+
+# Define window
+pygame.init()
+window = pygame.display.set_mode(map_size)
+pygame.display.set_caption("Map")
+
+# Draw areas and buffers on window
+pygame.draw.rect(window, (0, 255, 0), area1)
+pygame.draw.rect(window, (0, 0, 255), area2)
+pygame.draw.rect(window, (255, 255, 0), area3)
+pygame.draw.rect(window, (255, 0, 0), area4)
+pygame.draw.rect(window, (128, 128, 128), buffer1, 1)
+pygame.draw.rect(window, (128, 128, 128), buffer2, 1)
+pygame.draw.rect(window, (128, 128, 128), buffer3, 1)
+pygame.draw.rect(window, (128, 128, 128), buffer4, 1)
+
+# Draw player on window
+pygame.draw.circle(window, (255, 255, 255), player_pos, 5)
+
+# Display player area on window
+font = pygame.font.SysFont("arial", 24)
+text = font.render("Player is in Area(s) " + player_area, True, (255, 255, 255))
+text_rect = text.get_rect(center=(map_size[0] // 2, map_size[1] - 20))
+window.blit(text, text_rect)
+
+# Update window
+pygame.display.flip()
+print(player_area)
+
+if player_area == '1':
+    print(server_list[0])
+
+if player_area == '2':
+    print(server_list[1])
+
+if player_area == '3':
+    print(server_list[2])
+
+if player_area == '4':
+    print(server_list[3])
+
+if player_area == '12':
+    print(server_list[0])
+    print(server_list[1])
+
+if player_area == '13':
+    print(server_list[0])
+    print(server_list[2])
+
+if player_area == '34':
+    print(server_list[2])
+    print(server_list[3])
+if player_area == '24':
+    print(server_list[1])
+    print(server_list[3])
+
+
+# Wait for window to close
 while True:
-    # Receive a message and the address of the sender
-    message, addr = server_socket.recvfrom(1024)
-    message = message.decode()
-    if message.startswith('loc:'):
-        print(message.split(':')[1].split(','))
-        player_id, x, y = message.split(':')[1].split(',')
-        x, y = float(x), float(y)
-        # Update the location for a user
-        if player_id in players_loc[0]:
-            index = players_loc[0].index(player_id)
-            players_loc[1][index] = (x, y)
-        else:
-            players_loc[0].append(player_id)
-            players_loc[1].append((x, y))
-        print(f"Received location from player {player_id}: ({x}, {y})")
-
-        # Find the most populated area
-        if len(players_loc[0]) > 1:
-            center, x_min, y_min, x_max, y_max, players_in_area = find_most_populated_area(players_loc[1])
-            message = f"area:{center[0]},{center[1]};{x_min},{y_min};{x_max},{y_max};{','.join(players_in_area)}".encode()
-            print(f"Sending area to players: {message.decode()}")
-
-            # Send the area message to one of the slave servers based on a simple round-robin algorithm
-            next_slave_server = SLAVE_SERVERS[len(players_loc[0]) % len(SLAVE_SERVERS)]
-            server_socket.sendto(message, next_slave_server)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()

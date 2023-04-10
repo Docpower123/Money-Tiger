@@ -13,10 +13,10 @@ class Enemy(arcade.Sprite):
         self.player = player
         self.players = players
         self.attacked = self.player
-        self.layer = 'enemy'+str(index)
+        self.layer = f"enemy{index}"
 
         # stats
-        self.health = enemy_data[name]['health']
+        self.health = enemy_data[name]["health"]
 
         # movement
         self.auto_movement_time = time.time()
@@ -26,14 +26,13 @@ class Enemy(arcade.Sprite):
         # animation
         self.texture = arcade.load_texture(filename)
         self.animation_time = time.time()
-        self.status = 'idle'
+        self.status = "idle"
         self.cur_texture_index = 0
-        if name == 'Raccoon':
-            self.animations = raccoon_animations
-        elif name == 'Squid':
-            self.animations = squid_animations
-        else:
-            self.animations = spirit_bamboo_animations
+        self.animations = {
+            "Raccoon": raccoon_animations,
+            "Squid": squid_animations,
+            "Spirit Bamboo": spirit_bamboo_animations,
+        }[name]
 
     def animation(self):
         time_passed = time.time() - self.animation_time
@@ -41,35 +40,23 @@ class Enemy(arcade.Sprite):
             return
         self.animation_time = time.time()
 
-        path = ENEMY_PATH + self.name + '/' + self.status + '/'
+        path = ENEMY_PATH + self.name + "/" + self.status + "/"
+        animation_type = self.animations.get(self.status, self.animations["move"])
         self.cur_texture_index += 1
-        if self.status == 'idle':
-            if self.cur_texture_index > len(self.animations['idle'])-1:
-                self.cur_texture_index = 0
-            self.texture = arcade.load_texture(path + self.animations['idle'][self.cur_texture_index])
-
-        if self.status == 'attack':
-            if self.cur_texture_index > len(self.animations['attack'])-1:
-                self.cur_texture_index = 0
-            self.texture = arcade.load_texture(path + self.animations['attack'][self.cur_texture_index])
-
-        else:
-            if self.cur_texture_index > len(self.animations['move'])-1:
-                self.cur_texture_index = 0
-            self.texture = arcade.load_texture(path + self.animations['move'][self.cur_texture_index])
+        if self.cur_texture_index > len(animation_type) - 1:
+            self.cur_texture_index = 0
+        self.texture = arcade.load_texture(path + animation_type[self.cur_texture_index])
 
     def check_who_to_attack(self):
         min_distance_vec = (self.player.center_x - self.center_x, self.player.center_y - self.center_y)
-        min_distance = math.sqrt((min_distance_vec[0])**2 + (min_distance_vec[1])**2)
+        min_distance = math.sqrt(min_distance_vec[0] ** 2 + min_distance_vec[1] ** 2)
 
         for player in self.players:
             distance_vec = (player.center_x - self.center_x, player.center_y - self.center_y)
-            distance = math.sqrt((distance_vec[0])**2 + (distance_vec[1])**2)
+            distance = math.sqrt(distance_vec[0] ** 2 + distance_vec[1] ** 2)
             if min_distance > distance:
                 min_distance = distance
                 self.attacked = player
-            else:
-                self.attacked = self.player
 
     def e_update(self):
         self.animation()
