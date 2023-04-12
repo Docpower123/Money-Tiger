@@ -13,10 +13,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
     while True:
         # Receive a packet from the master server
         data, addr = s.recvfrom(1024)
-        print(data.decode())
-        # Simulate a delay in processing the request to simulate server load
-        #time.sleep(0.5)
-
+        if data != b'Health check':
+            print(data.decode())
         # Send a response packet back to the master server
         if data == b'Health check':
             s.sendto(b'OK', addr)
