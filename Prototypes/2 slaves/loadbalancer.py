@@ -104,6 +104,7 @@ def Check_servers():
 
 
 def assign_areas(slave_servers):
+    global assigned_areas
     while True:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # Define the game map size and the number of server areas
@@ -116,10 +117,11 @@ def assign_areas(slave_servers):
             return
         # Divide the game map into rectangular areas
         server_areas = []
-        area_width = map_width // num_server_areas
+        overlap = 50  # adjust as needed
+        area_width = (map_width + overlap) // num_server_areas
         for i in range(num_server_areas):
-            area_left = i * area_width
-            area_right = (i + 1) * area_width
+            area_left = i * area_width - overlap
+            area_right = (i + 1) * area_width + overlap
             area_height = map_height
             area = (area_left, 0, area_right, area_height)
             if area not in assigned_areas.values():
@@ -130,23 +132,62 @@ def assign_areas(slave_servers):
         time.sleep(5)
 
 
-def get_player_area(server_areas, sock):
+def get_player_area(server_areas, sock, players):
     """
     Determines which server area the player belongs to based on their coordinates.
     """
+    time = 0
     data, addr = sock.recvfrom(1024)
     if data.decode().startswith('coords:'):
         player_coords = data.decode().split(':')[1]
         player_coords = tuple(map(int, player_coords.split(',')))  # Convert to integers
-        for i, area, in enumerate(server_areas.values()):
-            if int(player_coords[0]) >= area[0] and int(player_coords[0]) <= area[2] and int(player_coords[1]) >= area[1] and \
+        for server_ip, area in server_areas.items():
+            print(server_areas)
+            if int(player_coords[0]) >= area[0] and int(player_coords[0]) <= area[2] and int(player_coords[1]) >= area[
+                1] and \
                     int(player_coords[1]) <= area[3]:
-                sock.sendto(f'new area assigned: {area}'.encode(), addr)
-                return
-        # If the player is not within any server area, return -1
-        print(-1)
+                time += 1
+                if time >= 2:
+                    print('--------------------------------------')
+                    first = players[addr]
+                    print(first)
+                    second = server_ip
+                    print(second)
+                    players[addr] = f'{first};{second}'
+                    print(players)
+                    print('--------------------------------------')
+                    return
+                sock.sendto(f'new area assigned: {area}:{addr}'.encode(), addr)
+                if addr[0] in players:
+                    players[addr] = server_ip
+                    print(players)
+                else:
+                    players.update({addr: server_ip})
+                    print(players)
 
 
+def forward_data(socket, players):
+    while True:
+        print(players)
+        data, ad = socket.recvfrom(1024)
+        if not data.decode().startswith('coords:'):
+            for addr, server_addr in players.items():
+                if ad == addr:
+                    try:
+                        if players.get(addr, '').split(';'):
+                            # Retrieve the value associated with the addr key from the players dictionary
+                            addr_value = players.get(addr, '')
+
+                            # Split the string into individual server addresses using the semicolon separator
+                            server_addresses = addr_value.split(';')
+
+                            # Send the data to each server address
+                            for server_address in server_addresses:
+                                socket.sendto(data, eval(server_address))
+                    except:
+                        socket.sendto(data, server_addr)
+                if ad == server_addr:
+                    socket.sendto(data, addr)
 
 
 # Define the slave servers as a dictionary with server names as keys and (ip_address, port) tuples as values
@@ -155,10 +196,7 @@ slave_servers = {
     ("localhost", 5001): ("localhost", 5001)
 }
 
-players = {
-    ('localhost', 6000): ('localhost', 5000)
-}
-
+players = {}
 assigned_areas = {}
 
 # Define the IP address and port number to listen on
@@ -175,7 +213,8 @@ time.sleep(3.5)
 area_assiging = threading.Thread(target=assign_areas, args=(slave_servers,))
 area_assiging.start()
 
-assign_players = threading.Thread(target=get_player_area, args=(assigned_areas, sock,))
+assign_players = threading.Thread(target=get_player_area, args=(assigned_areas, sock, players,))
 assign_players.start()
-
-
+time.sleep(3.5)
+forward_data = threading.Thread(target=forward_data, args=(sock, players,))
+forward_data.start()
