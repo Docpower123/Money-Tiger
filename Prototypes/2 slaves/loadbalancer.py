@@ -57,9 +57,13 @@ def update_server_status(slave_servers, timeout=5, max_rtt=100):
 def move_players_to_new_server(player_locations, current_server, slave_servers):
     # Create a UDP socket for sending health check packets
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    # Find a new server that is online
+
+    # Find a new server with least connections
     online_servers = [server_name for server_name, server_status in slave_servers.items() if server_status[0]]
-    new_server = random.choice(online_servers)
+    online_servers_with_connections = [(server_name, list(player_locations.values()).count(server_name)) for server_name
+                                       in online_servers]
+    sorted_servers_by_connections = sorted(online_servers_with_connections, key=lambda x: x[1])
+    new_server = sorted_servers_by_connections[0][0]
 
     # Move players from the current server to the new server
     for player_id, player_location in player_locations.items():
