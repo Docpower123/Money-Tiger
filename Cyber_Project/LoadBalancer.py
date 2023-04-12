@@ -14,6 +14,7 @@ HOST = gethostbyname(gethostname())
 PORT = LB_PORT
 ADDR = (HOST, PORT)
 
+
 def hash_password(password):
     # Convert password to bytes
     password_bytes = password.encode('utf-8')
@@ -106,7 +107,8 @@ loadbalancer.bind(ADDR)
 print('load balancer is up and running!')
 
 # connecting to the database
-db = mysql.connector.connect(host="localhost",user="client",passwd="P123321p",database="dblogin", auth_plugin='mysql_native_password')
+db = mysql.connector.connect(host="localhost", user="client", passwd="P123321p", database="dblogin",
+                             auth_plugin='mysql_native_password')
 mycur = db.cursor()
 
 # set up connection with slaves
@@ -178,22 +180,21 @@ while True:
     if data.decode()[0:4] == "KILL":
         clients.remove(addr)
 
-
 # Structure: (USERNAME,TYPE,DATA)
 # Types:
-    # PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health,index)
-    # MDROP - make drops - DATA=(drop_name,x,y, drop_status)
-    # PDROP - pick drops - DATA=(drop_name,x,y)
-    # WAT - weapon attack - DATA=(player_x,player_y,status,name)
-    # MAT - magic attack - DATA=(magic_x,magic_y,status,name)
-    # HURT - enemies hurt - DATA=(enemy_index,player_damage)
-    # KILL - client is no more in game - DATA=(username)
-    # LOG - client logged in - DATA=(username)
-    # MSG - client sent message - DATA=(message)
-    # REG - client register - DATA=(username,password)
-    # LV (from client) - client login varify - DATA=(username,password)
-    # LV (from server) - server response if login succeed or failed - DATA=(T/F)
-    # DBS - set info in database - DATA=(info_name,t)
-    # DBG (from client) - ask for info which in database - DATA=(info_name,user_password)
-    # DBG (from server) - return info which in database - DATA=(info)
-    # MSG - client sent message - DATA(message)
+# PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health,index)
+# MDROP - make drops - DATA=(drop_name,x,y, drop_status)
+# PDROP - pick drops - DATA=(drop_name,x,y)
+# WAT - weapon attack - DATA=(player_x,player_y,status,name)
+# MAT - magic attack - DATA=(magic_x,magic_y,status,name)
+# HURT - enemies hurt - DATA=(enemy_index,player_damage)
+# KILL - client is no more in game - DATA=(username)
+# LOG - client logged in - DATA=(username)
+# MSG - client sent message - DATA=(message)
+# REG - client register - DATA=(username,password)
+# LV (from client) - client login varify - DATA=(username,password)
+# LV (from server) - server response if login succeed or failed - DATA=(T/F)
+# DBS - set info in database - DATA=(info_name,t)
+# DBG (from client) - ask for info which in database - DATA=(info_name,user_password)
+# DBG (from server) - return info which in database - DATA=(info)
+# MSG - client sent message - DATA(message)

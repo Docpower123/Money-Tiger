@@ -1,106 +1,181 @@
-import pygame
+import socket
+import time
+import threading
+import random
+
+
+def update_server_status(slave_servers, timeout=5, max_rtt=100):
+    """
+    Perform a health check on a dictionary of slave servers using UDP sockets and update the original dictionary with the server status.
+
+    Args:
+        slave_servers (dict): A dictionary of slave servers with keys as server names and values as (ip_address, port) tuples.
+        timeout (float): The timeout value for the health check in seconds. Default is 5 seconds.
+        max_rtt (float): The maximum round-trip time allowed in milliseconds. If the round-trip time is longer than this, the server is considered overloaded. Default is 100 milliseconds.
+    """
+    # Create a UDP socket for sending health check packets
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.settimeout(timeout)
+
+    # Loop through the slave servers and perform a health check on each one
+    for server_address, status in slave_servers.items():
+        # Send a health check packet to the server
+        start_time = time.time()
+        message = b"Health check"
+        sock.sendto(message, server_address)
+
+        # Wait for a response from the server
+        try:
+            data, address = sock.recvfrom(1024)
+            end_time = time.time()
+
+            # Check that the response is valid
+            if data == b'OK':
+                # Calculate the round-trip time and update the status
+                rtt = (end_time - start_time) * 1000  # Convert to milliseconds
+                is_healthy = True
+                is_overloaded = rtt > max_rtt
+            else:
+                is_healthy = False
+                is_overloaded = False
+                rtt = None
+        except:
+            # If no response is received, mark the server as unhealthy and not overloaded
+            is_healthy = False
+            is_overloaded = False
+            rtt = None
+        try:
+            # Update the dictionary with the server status
+            slave_servers[server_address] = (is_healthy, is_overloaded, rtt)
+        except:
+            print('server down')
+
+    # Close the socket
+    sock.close()
+
+
+def move_players_to_new_server(player_locations, current_server, slave_servers):
+    # Create a UDP socket for sending health check packets
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # Find a new server that is online
+    online_servers = [server_name for server_name, server_status in slave_servers.items() if server_status[0]]
+    new_server = random.choice(online_servers)
+
+    # Move players from the current server to the new server
+    for player_id, player_location in player_locations.items():
+        if player_location == current_server:
+            player_locations[player_id] = new_server
+            print(f'Moving {player_id} from {current_server} to {new_server}')
+
+    # Wait for the new server to update its player location information
+    time.sleep(0.5)
+
+    # Notify the new server that it has new players
+    message = 'new_players'
+    new_server_address = new_server
+    sock.sendto(message.encode(), new_server_address)
+    print('players moved')
+    # Close the socket
+    sock.close()
+
+
+def Check_servers():
+    while True:
+        # Perform a health check on the slave servers
+        update_server_status(slave_servers)
+        try:
+            # Print the updated status of the slave servers
+            for server_name, server_status in slave_servers.items():
+                is_healthy, is_overloaded, rtt = server_status
+                if is_healthy:
+                    if is_overloaded:
+                        print(f"{server_name} is healthy but overloaded (RTT: {rtt} ms)")
+                        move_players_to_new_server(players, server_name, slave_servers)
+                    else:
+                        print(f"{server_name} is healthy (RTT: {rtt} ms)")
+                else:
+                    print(f"{server_name} is dead")
+                    move_players_to_new_server(players, server_name, slave_servers)
+
+        except:
+            pass
+        # Wait for 10 seconds
+        time.sleep(10)
+
+
+def assign_areas(slave_servers):
+    while True:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Define the game map size and the number of server areas
+        map_width = 650
+        map_height = 450
+        servers = [server_name for server_name, server_status in slave_servers.items() if server_status[0]]
+        num_server_areas = len(servers)
+        if num_server_areas == 0:
+            print('No servers are online!')
+            return
+        # Divide the game map into rectangular areas
+        server_areas = []
+        area_width = map_width // num_server_areas
+        for i in range(num_server_areas):
+            area_left = i * area_width
+            area_right = (i + 1) * area_width
+            area_height = map_height
+            area = (area_left, 0, area_right, area_height)
+            if area not in assigned_areas.values():
+                server_name = servers[i]
+                sock.sendto(f'new area assigned: {area}'.encode(), server_name)
+                assigned_areas[server_name] = area
+                print(f"Assigned {area} to {server_name}")
+        time.sleep(5)
+
+
+def get_player_area(server_areas, sock):
+    """
+    Determines which server area the player belongs to based on their coordinates.
+    """
+    data, addr = sock.recvfrom(1024)
+    if data.decode().startswith('coords:'):
+        player_coords = data.decode().split(':')[1]
+        player_coords = tuple(map(int, player_coords.split(',')))  # Convert to integers
+        for i, area, in enumerate(server_areas.values()):
+            if int(player_coords[0]) >= area[0] and int(player_coords[0]) <= area[2] and int(player_coords[1]) >= area[1] and \
+                    int(player_coords[1]) <= area[3]:
+                sock.sendto(f'new area assigned: {area}'.encode(), addr)
+                return
+        # If the player is not within any server area, return -1
+        print(-1)
 
 
 
-server_list = [(21),(22)]
+
+# Define the slave servers as a dictionary with server names as keys and (ip_address, port) tuples as values
+slave_servers = {
+    ("localhost", 5000): ("localhost", 5000),
+    ("localhost", 5001): ("localhost", 5001)
+}
+
+players = {
+    ('localhost', 6000): ('localhost', 5000)
+}
+
+assigned_areas = {}
+
+# Define the IP address and port number to listen on
+HOST = 'localhost'  # Listen on all available network interfaces
+PORT = 9000
+
+# Create a UDP socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind((HOST, PORT))
+
+Health_monitoring = threading.Thread(target=Check_servers)
+Health_monitoring.start()
+time.sleep(3.5)
+area_assiging = threading.Thread(target=assign_areas, args=(slave_servers,))
+area_assiging.start()
+
+assign_players = threading.Thread(target=get_player_area, args=(assigned_areas, sock,))
+assign_players.start()
 
 
-# Define map size and player coordinates
-map_size = (400, 400)
-player_pos = (200, 100)
-
-# Define areas
-area_size = (map_size[0] // 2, map_size[1] // 2)
-area1 = pygame.Rect((0, 0), area_size)  # top-left area
-area2 = pygame.Rect((area_size[0], 0), area_size)  # top-right area
-area3 = pygame.Rect((0, area_size[1]), area_size)  # bottom-left area
-area4 = pygame.Rect(area_size, area_size)  # bottom-right area
-
-# Define buffer areas
-buffer_size = 10
-buffer1 = area1.inflate(buffer_size, buffer_size)
-buffer2 = area2.inflate(buffer_size, buffer_size)
-buffer3 = area3.inflate(buffer_size, buffer_size)
-buffer4 = area4.inflate(buffer_size, buffer_size)
-
-# Determine which areas the player's coordinates belong to
-area1_flag = buffer1.collidepoint(player_pos)
-area2_flag = buffer2.collidepoint(player_pos)
-area3_flag = buffer3.collidepoint(player_pos)
-area4_flag = buffer4.collidepoint(player_pos)
-
-# Determine which areas the player is in
-player_area = ""
-if area1_flag:
-    player_area += "1"
-if area2_flag:
-    player_area += "2"
-if area3_flag:
-    player_area += "3"
-if area4_flag:
-    player_area += "4"
-if not player_area:
-    player_area = "none"
-
-# Define window
-pygame.init()
-window = pygame.display.set_mode(map_size)
-pygame.display.set_caption("Map")
-
-# Draw areas and buffers on window
-pygame.draw.rect(window, (0, 255, 0), area1)
-pygame.draw.rect(window, (0, 0, 255), area2)
-pygame.draw.rect(window, (255, 255, 0), area3)
-pygame.draw.rect(window, (255, 0, 0), area4)
-pygame.draw.rect(window, (128, 128, 128), buffer1, 1)
-pygame.draw.rect(window, (128, 128, 128), buffer2, 1)
-pygame.draw.rect(window, (128, 128, 128), buffer3, 1)
-pygame.draw.rect(window, (128, 128, 128), buffer4, 1)
-
-# Draw player on window
-pygame.draw.circle(window, (255, 255, 255), player_pos, 5)
-
-# Display player area on window
-font = pygame.font.SysFont("arial", 24)
-text = font.render("Player is in Area(s) " + player_area, True, (255, 255, 255))
-text_rect = text.get_rect(center=(map_size[0] // 2, map_size[1] - 20))
-window.blit(text, text_rect)
-
-# Update window
-pygame.display.flip()
-print(player_area)
-
-if player_area == '1':
-    print(server_list[0])
-
-if player_area == '2':
-    print(server_list[1])
-
-if player_area == '3':
-    print(server_list[2])
-
-if player_area == '4':
-    print(server_list[3])
-
-if player_area == '12':
-    print(server_list[0])
-    print(server_list[1])
-
-if player_area == '13':
-    print(server_list[0])
-    print(server_list[2])
-
-if player_area == '34':
-    print(server_list[2])
-    print(server_list[3])
-if player_area == '24':
-    print(server_list[1])
-    print(server_list[3])
-
-
-# Wait for window to close
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            quit()
