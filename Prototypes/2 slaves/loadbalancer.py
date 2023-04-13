@@ -131,54 +131,62 @@ def assign_areas(slave_servers):
         time.sleep(5)
 
 
-def get_player_area(server_areas, sock, players):
+def get_player_area(server_areas, sock, players, data, addr):
     """
     Determines which server area the player belongs to based on their coordinates.
     """
-    while True:
-        time = 0
-        data, addr = sock.recvfrom(1024)
-        if data.decode().startswith('coords:'):
-            player_coords = data.decode().split(':')[1]
-            player_coords = tuple(map(int, player_coords.split(',')))  # Convert to integers
-            for server_ip, area in server_areas.items():
-                if int(player_coords[0]) >= area[0] and int(player_coords[0]) <= area[2] and int(player_coords[1]) >= area[
-                    1] and \
-                        int(player_coords[1]) <= area[3]:
-                    time += 1
-                    if time >= 2:
-                        first = players[addr]
-                        second = server_ip
-                        players[addr] = f'{first};{second}'
-                        return
-                    sock.sendto(f'new area assigned: {area}:{addr}'.encode(), addr)
-                    if addr[0] in players:
-                        players[addr] = server_ip
-                    else:
-                        players.update({addr: server_ip})
+    time = 0
+    if data.startswith('coords:'):
+        player_coords = data.split(':')[1]
+        player_coords = tuple(map(int, player_coords.split(',')))  # Convert to integers
+        for server_ip, area in server_areas.items():
+            if int(player_coords[0]) >= area[0] and int(player_coords[0]) <= area[2] and int(player_coords[1]) >= \
+                    area[
+                        1] and \
+                    int(player_coords[1]) <= area[3]:
+                time += 1
+                if time >= 2:
+                    first = players[addr]
+                    second = server_ip
+                    players[addr] = f'{first};{second}'
+                    return
+                sock.sendto(f'new area assigned: {area}:{addr}'.encode(), addr)
+                if addr[0] in players:
+                    players[addr] = server_ip
+                else:
+                    players.update({addr: server_ip})
 
 
-def forward_data(socket, players):
+def forward_data(socket, players, assigned_areas):
+    client_data = {}
     while True:
         data, ad = socket.recvfrom(1024)
-        if not data.decode().startswith('coords:'):
-            for addr, server_addr in players.items():
-                if ad == addr:
-                    try:
-                        if players.get(addr, '').split(';'):
-                            # Retrieve the value associated with the addr key from the players dictionary
-                            addr_value = players.get(addr, '')
+        print(data)
+        print(players)
+        if data.decode().startswith('coords:'):
+            get_player_area(assigned_areas, socket, players, data.decode(), ad)
+        else:
+                if ad not in client_data:
+                    client_data[ad] = []
+                client_data[ad].append(data)
+                for addr, server_addr in players.items():
+                    if ad == addr:
+                        try:
+                            if players.get(addr, '').split(';'):
+                                # Retrieve the value associated with the addr key from the players dictionary
+                                addr_value = players.get(addr, '')
 
-                            # Split the string into individual server addresses using the semicolon separator
-                            server_addresses = addr_value.split(';')
+                                # Split the string into individual server addresses using the semicolon separator
+                                server_addresses = addr_value.split(';')
 
-                            # Send the data to each server address
-                            for server_address in server_addresses:
-                                socket.sendto(data, eval(server_address))
-                    except:
-                        socket.sendto(data, server_addr)
-                if ad == server_addr:
-                    socket.sendto(data, addr)
+                                # Send the data to each server address
+                                for server_address in server_addresses:
+                                    for client_data_item in client_data[ad]:
+                                        socket.sendto(client_data_item, eval(server_address))
+                        except:
+                            socket.sendto(data, server_addr)
+                    if ad == server_addr:
+                        socket.sendto(data, addr)
 
 
 # Define the slave servers as a dictionary with server names as keys and (ip_address, port) tuples as values
@@ -203,7 +211,7 @@ Health_monitoring.start()
 time.sleep(3.5)
 area_assiging = threading.Thread(target=assign_areas, args=(slave_servers,))
 area_assiging.start()
-assign_players = threading.Thread(target=get_player_area, args=(assigned_areas, sock, players,))
-assign_players.start()
-forward_data = threading.Thread(target=forward_data, args=(sock, players,))
+# assign_players = threading.Thread(target=get_player_area, args=(assigned_areas, sock, players,))
+# assign_players.start()
+forward_data = threading.Thread(target=forward_data, args=(sock, players, assigned_areas))
 forward_data.start()
