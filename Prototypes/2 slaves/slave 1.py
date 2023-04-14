@@ -32,7 +32,7 @@ def receive_message(server_socket, private_key, public_key):
     except:
         print("Invalid signature")
         server_socket.close()
-        exit()
+        return 
     decrypted_message = private_key.decrypt(
         encrypted_message,
         padding.OAEP(

@@ -34,7 +34,7 @@ def receive_message(server_socket, private_key, public_key):
     except:
         print("Invalid signature")
         server_socket.close()
-        exit()
+        return
     decrypted_message = private_key.decrypt(
         encrypted_message,
         padding.OAEP(
@@ -62,80 +62,6 @@ def send_response(server_socket, response, public_key, private_key, client_addre
     )
     server_socket.sendto(signature + encrypted_response, client_address)
 
-    def lb_main():
-        loadbalancer.bind(ADDR)
-        print('load balancer is up and running!')
-    # connecting to the database
-    db = mysql.connector.connect(host="mysql-serve", port="3306", user="client", passwd="P123321p", database="dblogin",
-                                 auth_plugin='mysql_native_password')
-    mycur = db.cursor()
-
-    # set up connection with slaves
-    count = 0
-    while True:
-        data, addr = receive_message(loadbalancer, private_key, public_key)
-        if str(addr[1]).startswith('9'):
-            slaves.append((data, addr[1]))
-            send_response(loadbalancer, f'done'.encode(), public_key, private_key, addr)
-            count += 1
-        if count == 1:
-            break
-
-    while True:
-        # begin work with clients:
-        data, addr = receive_message(loadbalancer, private_key, public_key)
-        if addr not in clients and addr not in slaves:
-            clients.append(addr)
-            handle_new_user(addr)
-
-        # save info in database
-        message = data
-        if message.decode().find(';') != -1 and message.decode().split(';')[1] == "DBS":
-            messag = message.decode().split(';')
-            info_name = messag[2]
-            for i in range(3):
-                messag.pop(0)
-            t = tuple(messag)
-            sql = f"update dblogin set {info_name} = %s where Username = %s"
-            mycur.execute(sql, t)
-            db.commit()
-
-        # get info from database
-        elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "DBG":
-            messag = message.decode().split(',')
-            info_name = messag[2]
-            user_password = messag[3]
-            user_name = messag[0]
-            # get info from database
-            sql = f"select {info_name} from dblogin where Username = %s and Password = %s"
-            mycur.execute(sql, [(user_name), (user_password)])
-            info = mycur.fetchall()
-            # send info to client
-            send_response(loadbalancer, f"SERVER,DBG,{info[0][0]}".encode(), public_key, private_key, addr)
-
-        # log varify
-        elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "LV":
-            user_varify = message.decode().split(',')[2]
-            pass_varify = message.decode().split(',')[3]
-            sql = "select * from dblogin where Username = %s and Password = %s"
-            mycur.execute(sql, [(user_varify), (pass_varify)])
-            results = mycur.fetchall()
-            if results:
-                send_response(loadbalancer, "SERVER,LV,T".encode(), public_key, private_key, addr)
-            else:
-                send_response(loadbalancer, "SERVER,LV,F".encode(), public_key, private_key, addr)
-
-        # register new clients
-        elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "REG":
-            username = message.decode().split(',')[2]
-            password = message.decode().split(',')[3]
-            sql = "insert into dblogin (Username, Password) values(%s,%s)"
-            t = (username, password)
-            mycur.execute(sql, t)
-            db.commit()
-
-        if data.decode()[0:4] == "KILL":
-            clients.remove(addr)
 
 def update_server_status(slave_servers, private_key, public_key, timeout=5, max_rtt=300):
     """
@@ -159,7 +85,6 @@ def update_server_status(slave_servers, private_key, public_key, timeout=5, max_
         # Wait for a response from the server
         try:
             data, addr = receive_message(sock, private_key, public_key)
-            print(data)
             end_time = time.time()
 
             # Check that the response is valid
@@ -295,6 +220,54 @@ def forward_data(socket, players, assigned_areas, client_data):
     while True:
         items_to_remove = []
         for addr, data in client_data.items():
+            message = data
+            if message.decode().find(';') != -1 and message.decode().split(';')[1] == "DBS":
+                messag = message.decode().split(';')
+                info_name = messag[2]
+                for i in range(3):
+                    messag.pop(0)
+                t = tuple(messag)
+                sql = f"update dblogin set {info_name} = %s where Username = %s"
+                mycur.execute(sql, t)
+                db.commit()
+
+            # get info from database
+            elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "DBG":
+                messag = message.decode().split(',')
+                info_name = messag[2]
+                user_password = messag[3]
+                user_name = messag[0]
+                # get info from database
+                sql = f"select {info_name} from dblogin where Username = %s and Password = %s"
+                mycur.execute(sql, [(user_name), (user_password)])
+                info = mycur.fetchall()
+                # send info to client
+                send_response(loadbalancer, f"SERVER,DBG,{info[0][0]}".encode(), public_key, private_key, addr)
+
+            # log varify
+            elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "LV":
+                user_varify = message.decode().split(',')[2]
+                pass_varify = message.decode().split(',')[3]
+                sql = "select * from dblogin where Username = %s and Password = %s"
+                mycur.execute(sql, [(user_varify), (pass_varify)])
+                results = mycur.fetchall()
+                if results:
+                    send_response(loadbalancer, "SERVER,LV,T".encode(), public_key, private_key, addr)
+                else:
+                    send_response(loadbalancer, "SERVER,LV,F".encode(), public_key, private_key, addr)
+
+            # register new clients
+            elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "REG":
+                username = message.decode().split(',')[2]
+                password = message.decode().split(',')[3]
+                sql = "insert into dblogin (Username, Password) values(%s,%s)"
+                t = (username, password)
+                mycur.execute(sql, t)
+                db.commit()
+
+            if data.decode()[0:4] == "KILL":
+                clients.remove(addr)
+
             if data.startswith(b'coords:'):
                 print('hello! this is the begining!')
                 print(client_data)
@@ -354,6 +327,10 @@ PORT = 9000
 private_key = load_private_key("private_key.pem")
 # Load the public key from the PEM encoded file
 public_key = load_public_key("public_key.pem")
+# connecting to the database
+db = mysql.connector.connect(host="mysql-serve", port="3306", user="client", passwd="P123321p", database="dblogin",
+                             auth_plugin='mysql_native_password')
+mycur = db.cursor()
 # Create a UDP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((HOST, PORT))
@@ -373,6 +350,5 @@ receive = threading.Thread(target=receive, args=(client_data, sock, private_key,
 receive.start()
 
 # fix line 88
-# fix exit in recive func
-if __name__ == "__main__":
-    lb_main()
+# fix exit in receive func
+
