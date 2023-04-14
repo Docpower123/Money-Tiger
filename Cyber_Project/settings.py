@@ -14,30 +14,21 @@ SCREEN_COLOR = (113, 221, 238)
 SCREEN_WIDTH = 650
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
-MUSIC_VOLUME = 0
-ENEMIES_NUM = 5
-TILED_MAP = '.\\map\\map.json'
+MUSIC_VOLUME = 0.2
+ENEMIES_NUM = 100
+TILED_MAP = 'map/finalmap.json'
 
 # best map
 MAP_RIGHT = 28635
 MAP_LEFT = 440
 MAP_UP = 19724
 MAP_DOWN = 525
-
-SPAWN = {'right': 28571, 'left': 504, 'up': 19660, 'down': 589}
-
-# map
-MAP_RIGHT = 2000
-MAP_LEFT = 0
-MAP_UP = 2000
-MAP_DOWN = 0
-
-SPAWN = {'right': 2000, 'left': 64, 'up': 2000, 'down': 64}
+SPAWN = {'right': 27000, 'left': 1000, 'up': 18000, 'down': 1000}
 
 # music!
-DEFAULT_MUSIC = './audio/never.mp3'
+DEFAULT_MUSIC = './audio/tiger.mp3'
 POTION_MUSIC = './audio/gimme.mp3'
-POTION1_MUSIC = './audio/goni.ogg'
+POTION1_MUSIC = './audio/never.mp3'
 
 
 # entity
