@@ -1,38 +1,83 @@
 import socket
+import time
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives import serialization, hashes
 
-# Slave configuration
-SLAVE_HOST = "localhost"
-SLAVE_PORT = 7002
 
-# Create a UDP socket and bind it to a specific address and port
-slave_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-slave_socket.bind((SLAVE_HOST, SLAVE_PORT))
+def load_private_key(filename):
+    with open(filename, "rb") as f:
+        private_key = serialization.load_pem_private_key(
+            f.read(),
+            password=None
+        )
+    return private_key
 
-while True:
-    # Receive a message and the address of the sender
-    message, addr = slave_socket.recvfrom(1024)
-    message = message.decode()
-    if message.startswith('area:'):
-        area_info = message.split(':')[1].split(';')
-        center = tuple(map(float, area_info[0].split(',')))
-        bounding_box = tuple(map(float, area_info[1].split(',')))
-        players_in_area = area_info[2].split(',')
-        print(
-            f"Received area info from load balancer: center={center}, bounding_box={bounding_box}, players={players_in_area}")
 
-        # Serve players in this area
-        while True:
-            # Receive a message from a player
-            player_message, player_addr = slave_socket.recvfrom(1024)
-            player_message = player_message.decode()
-            player_id, x, y = player_message.split(',')
-            x, y = float(x), float(y)
-            print(f"Received location from player {player_id}: ({x}, {y})")
+def load_public_key(filename):
+    with open(filename, "rb") as f:
+        public_key = serialization.load_pem_public_key(f.read())
+    return public_key
 
-            # Check if the player is in this area
-            if bounding_box[0] <= x <= bounding_box[2] and bounding_box[1] <= y <= bounding_box[3]:
-                print(f"Player {player_id} is in this area")
-                response_message = f"You are in area {center}, there are {len(players_in_area)} players in this area".encode()
-                slave_socket.sendto(response_message, player_addr)
-            else:
-                print(f"Player {player_id} is not in this area")
+
+def receive_message(server_socket, private_key, public_key):
+    data, client_address = server_socket.recvfrom(1024)
+    signature, encrypted_message = data[:256], data[256:]
+    try:
+        public_key.verify(
+            signature,
+            encrypted_message,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+    except:
+        print("Invalid signature")
+        server_socket.close()
+        exit()
+    decrypted_message = private_key.decrypt(
+        encrypted_message,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return decrypted_message, client_address
+
+
+def send_response(server_socket, response, public_key, private_key, client_address):
+    encrypted_response = public_key.encrypt(
+        response,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    signature = private_key.sign(
+        encrypted_response,
+        padding.PKCS1v15(),
+        hashes.SHA256()
+    )
+    server_socket.sendto(signature + encrypted_response, client_address)
+
+
+# Load the private key from the PEM encoded file
+private_key = load_private_key("private_key.pem")
+# Load the public key from the PEM encoded file
+public_key = load_public_key("public_key.pem")
+# Define the IP address and port number to listen on
+HOST = 'localhost'  # Listen on all available network interfaces
+PORT = 5001
+
+# Create a UDP socket
+with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+    # Bind the socket to the specified host and port
+    s.bind((HOST, PORT))
+
+    while True:
+        # Receive a packet from the master server
+        data, addr = receive_message(s, private_key, public_key)
+        print(data)
+        # Send a response packet back to the master server
+        if data == b'Health check':
+            send_response(s, b'OK', public_key, private_key, addr)
