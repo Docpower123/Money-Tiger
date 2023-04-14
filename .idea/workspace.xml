@@ -4,7 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a46acb75-063c-4a00-9117-207a7e3d45a4" name="Changes" comment="" />
+    <list default="true" id="a46acb75-063c-4a00-9117-207a7e3d45a4" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Prototypes/2 slaves/private_key.pem" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Prototypes/2 slaves/public_key.pem" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Prototypes/2 slaves/client.py" beforeDir="false" afterPath="$PROJECT_DIR$/Prototypes/2 slaves/client.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Prototypes/2 slaves/loadbalancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Prototypes/2 slaves/loadbalancer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Prototypes/2 slaves/slave 1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Prototypes/2 slaves/slave 1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Prototypes/2 slaves/slave 2.py" beforeDir="false" afterPath="$PROJECT_DIR$/Prototypes/2 slaves/slave 2.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
