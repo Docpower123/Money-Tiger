@@ -219,7 +219,7 @@ def get_player_area(server_areas, sock, players, data, addr, private_key, public
 def forward_data(socket, players, assigned_areas, client_data):
     while True:
         items_to_remove = []
-        for addr, data in client_data.items():
+        for addr, data in client_data.copy().items():
             message = data
             if message.decode().find(';') != -1 and message.decode().split(';')[1] == "DBS":
                 messag = message.decode().split(';')
@@ -233,6 +233,7 @@ def forward_data(socket, players, assigned_areas, client_data):
 
             # get info from database
             elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "DBG":
+                print("yes")
                 messag = message.decode().split(',')
                 info_name = messag[2]
                 user_password = messag[3]
@@ -242,7 +243,7 @@ def forward_data(socket, players, assigned_areas, client_data):
                 mycur.execute(sql, [(user_name), (user_password)])
                 info = mycur.fetchall()
                 # send info to client
-                send_response(loadbalancer, f"SERVER,DBG,{info[0][0]}".encode(), public_key, private_key, addr)
+                send_response(socket, f"SERVER,DBG,{info[0][0]}".encode(), public_key, private_key, addr)
 
             # log varify
             elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "LV":
@@ -252,9 +253,9 @@ def forward_data(socket, players, assigned_areas, client_data):
                 mycur.execute(sql, [(user_varify), (pass_varify)])
                 results = mycur.fetchall()
                 if results:
-                    send_response(loadbalancer, "SERVER,LV,T".encode(), public_key, private_key, addr)
+                    send_response(socket, "SERVER,LV,T".encode(), public_key, private_key, addr)
                 else:
-                    send_response(loadbalancer, "SERVER,LV,F".encode(), public_key, private_key, addr)
+                    send_response(socket, "SERVER,LV,F".encode(), public_key, private_key, addr)
 
             # register new clients
             elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "REG":
@@ -266,7 +267,7 @@ def forward_data(socket, players, assigned_areas, client_data):
                 db.commit()
 
             if data.decode()[0:4] == "KILL":
-                clients.remove(addr)
+               pass #clients.remove(addr)
 
             if data.startswith(b'coords:'):
                 print('hello! this is the begining!')
@@ -293,7 +294,7 @@ def forward_data(socket, players, assigned_areas, client_data):
                                     # Send the data to each server address
                                     for server_address in server_addresses:
                                         for client_data_item in client_data[addr]:
-                                            send_response(socket, data, public_key, private_key, eval(server_address))
+                                            send_response(socket, data, public_key, private_key, ast.literal_eval(server_address))
                             except:
                                 send_response(socket, data, public_key, private_key, server_addr)
                     if addr == server_addr:
@@ -328,7 +329,7 @@ private_key = load_private_key("private_key.pem")
 # Load the public key from the PEM encoded file
 public_key = load_public_key("public_key.pem")
 # connecting to the database
-db = mysql.connector.connect(host="mysql-serve", port="3306", user="client", passwd="P123321p", database="dblogin",
+db = mysql.connector.connect(host="localhost", port="3306", user="root", passwd="lian230106", database="dblogin",
                              auth_plugin='mysql_native_password')
 mycur = db.cursor()
 # Create a UDP socket

@@ -80,3 +80,5 @@ while True:
     data, addr = receive_response(client, private_key, public_key)
     print(data)
     send_message(client, f'hello!'.encode(), public_key, private_key, ('localhost', 9000))
+    msg = f'a,DBG,Password,a'
+    send_message(client, msg.encode(), public_key, private_key, ('localhost', 9000))
