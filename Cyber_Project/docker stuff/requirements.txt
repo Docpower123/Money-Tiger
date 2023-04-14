@@ -1,0 +1,8 @@
+pyglet
+arcade
+cryptography
+mysql-connector
+
+# remove the following lines before running it #
+------------------------------------------------
+this file makes the docker download the "imports" we need to run the servers.
