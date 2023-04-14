@@ -1,5 +1,4 @@
 # Server
-IP = '192.168.68.106'
 RECV_SIZE = 4000
 PSS_COOLDOWN = 0.1
 
