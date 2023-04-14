@@ -1,5 +1,3 @@
-import sys
-import os
 import threading
 import queue
 import arcade
@@ -20,8 +18,13 @@ from ui import UI
 import tkinter
 from tkinter import *
 from tkinter import messagebox
+import mysql.connector
 from chat import run_chat
 
+
+#connecting to the database
+db = mysql.connector.connect(host="localhost",user="root",passwd="P123321p",database="dblogin")
+mycur = db.cursor()
 
 def error_destroy():
     err.destroy()
@@ -56,10 +59,10 @@ def register_user():
     elif password_info == "":
         error()
     else:
-        # sending reg pkt
-        reg_msg = f'{username_info},REG,{username_info},{password_info}'
-        send_message(game, reg_msg.encode(), public_key, private_key, (LB_IP, LB_PORT))
-        # other stuff
+        sql = "insert into dblogin values(%s,%s)"
+        t = (username_info, password_info)
+        mycur.execute(sql, t)
+        db.commit()
         Label(root1, text="").pack()
         time.sleep(0.50)
         global NAME
@@ -123,6 +126,7 @@ def logged():
     Label(logg, text="").pack()
     Button(logg, text="Log-Out", bg="grey", width=8, height=1, command=logg_destroy).pack()
 
+
 def failed():
     global fail
     fail = Toplevel(root2)
@@ -132,41 +136,34 @@ def failed():
     Label(fail, text="").pack()
     Button(fail, text="Ok", bg="grey", width=8, height=1, command=fail_destroy).pack()
 
+
 def login_varify():
     user_varify = username_varify.get()
-    pass_varify = password_varify.get()
-    # sending lv pkt
-    lv_msg = f'{user_varify},LV,{user_varify},{pass_varify}'
-    send_message(game, lv_msg.encode(), public_key, private_key, (LB_IP, LB_PORT))
-    # other stuff
-    while True:
-        response, response_addr = receive_response(game, private_key, public_key)
-        if response.decode().split(',')[1] == "LV":
-            results = response.decode().split(',')[2]
-            if results == "T":
-                logged()
-                break
-            else:
-                failed()
-                break
+    pas_varify = password_varify.get()
+    sql = "select * from dblogin where Username = %s and Password = %s"
+    mycur.execute(sql,[(user_varify),(pas_varify)])
+    results = mycur.fetchall()
+    if results:
+        for i in results:
+            logged()
+            break
+    else:
+        failed()
+
 
 def db_get_info(info_name):
+    user_varify = username_varify.get()
     pas_varify = password_varify.get()
-    msg = f'{NAME},DBG,{info_name},{pas_varify}'
-    send_message(game, msg.encode(), public_key, private_key, (LB_IP, LB_PORT))
-    while True:
-        response, response_addr = receive_response(game, private_key, public_key)
-        if response.decode().split(',')[1] == "DBG":
-            info = response.decode()[response.decode().find('DBG,')+4:]
-            print(response.decode(), info)
-            return info
+    sql = f"select {info_name} from dblogin where Username = %s and Password = %s"
+    mycur.execute(sql, [(user_varify), (pas_varify)])
+    info = mycur.fetchall()
+    return info[0][0]
 
 
 def db_set_info(info_name, t):
-    msg = f'{NAME};DBS;{info_name}'
-    for item in t:
-        msg += f';{item}'
-    send_message(game, msg.encode(), public_key, private_key, (LB_IP, LB_PORT))
+    sql = f"update dblogin set {info_name} = %s where Username = %s"
+    mycur.execute(sql, t)
+    db.commit()
 
 
 def main_screen():
@@ -241,9 +238,13 @@ def receive_response(client_socket, private_key, public_key):
     return decrypted_response, server_address
 
 
+# log in
+main_screen()
+root.mainloop()
+
+
 # parameters for the server to use
-ADDR = (IP, 10001)
-LB_IP = gethostbyname(gethostname())
+ADDR = (FEMALE_IP, FEMALE_PORT)
 Server_ADDR = (LB_IP, LB_PORT)
 messages = queue.Queue()
 
@@ -261,14 +262,8 @@ while True:
     if data.decode():
         Server_ADDR = data.decode()
         Server_ADDR = eval(Server_ADDR)
-        #Server_ADDR = ('172.17.0.1', Server_ADDR[1])
         break
 print("connected")
-
-
-# log in
-main_screen()
-root.mainloop()
 
 
 def get_info():
@@ -279,11 +274,13 @@ def get_info():
 
 def chat():
     while True:
-        run_chat(NAME, Server_ADDR[0])
+        run_chat(NAME)
 
 
 t = threading.Thread(target=get_info)
 t2 = threading.Thread(target=chat)
+t.start()
+t2.start()
 
 
 class MyGame(arcade.Window):
@@ -389,9 +386,6 @@ class MyGame(arcade.Window):
         # pss sending
         pss = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
         send_message(game, pss.encode(), public_key, private_key, Server_ADDR)
-
-        t.start()
-        t2.start()
 
         # enemies
         self.draw_enemies()
@@ -499,7 +493,6 @@ class MyGame(arcade.Window):
         if key == arcade.key.ESCAPE:
             # tell server about log out
             send_message(game, f'{NAME},KILL,{NAME}'.encode(), public_key, private_key, Server_ADDR)
-            send_message(game, f'KILL, {ADDR}'.encode(), public_key, private_key, (LB_IP, LB_PORT))
             # save stuff in database
             db_set_info('Pos', (f'{self.player.center_x},{self.player.center_y}', NAME))
             db_set_info('Health', (f'{self.player.health}', NAME))
