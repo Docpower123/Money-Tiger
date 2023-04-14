@@ -21,6 +21,7 @@ import tkinter
 from tkinter import *
 from tkinter import messagebox
 from chat import run_chat
+import math
 
 
 def error_destroy():
@@ -158,7 +159,6 @@ def db_get_info(info_name):
         response, response_addr = receive_response(game, private_key, public_key)
         if response.decode().split(',')[1] == "DBG":
             info = response.decode()[response.decode().find('DBG,')+4:]
-            print(response.decode(), info)
             return info
 
 
@@ -242,11 +242,10 @@ def receive_response(client_socket, private_key, public_key):
 
 
 # parameters for the server to use
-ADDR = (IP, 10001)
-LB_IP = gethostbyname(gethostname())
+ADDR = (sys.argv[1], 10001)
+LB_IP = sys.argv[2]
 Server_ADDR = (LB_IP, LB_PORT)
 messages = queue.Queue()
-
 
 # Load the private key from the PEM encoded file
 private_key = load_private_key("private_key.pem")
@@ -255,13 +254,12 @@ public_key = load_public_key("public_key.pem")
 # setting up the server
 game = socket(AF_INET, SOCK_DGRAM)
 game.bind(ADDR)
-send_message(game, f'IP, {ADDR}'.encode(), public_key, private_key, Server_ADDR)
+send_message(game, f'IP'.encode(), public_key, private_key, Server_ADDR)
 while True:
     data, addr = receive_response(game, private_key, public_key)
     if data.decode():
         Server_ADDR = data.decode()
         Server_ADDR = eval(Server_ADDR)
-        #Server_ADDR = ('172.17.0.1', Server_ADDR[1])
         break
 print("connected")
 
@@ -335,8 +333,8 @@ class MyGame(arcade.Window):
     def info_from_db(self):
         # Position
         player_pos = db_get_info('Pos')
-        if player_pos is None:
-            # saving position first time registered
+        if player_pos == "None":
+            # position first time registered
             self.player.center_x, self.player.center_y = random.randint(SPAWN["left"], SPAWN["right"]), random.randint(
                 SPAWN["down"],
                 SPAWN["up"])
@@ -347,17 +345,17 @@ class MyGame(arcade.Window):
 
         # Health
         player_health = db_get_info('Health')
-        if player_health is not None:
+        if player_health != "None":
             self.player.health = int(player_health.split(',')[0])
 
         # Energy
         player_energy = db_get_info('Energy')
-        if player_energy is not None:
+        if player_energy != "None":
             self.player.energy = int(float(player_energy.split(',')[0]))
 
         # Items
         player_items = db_get_info('Items')
-        if player_items is not None:
+        if player_items != "None":
             player_items = player_items.split(',')
             for i in range(0, len(player_items), 2):
                 name = player_items[i]
@@ -371,7 +369,7 @@ class MyGame(arcade.Window):
 
         # Last attack
         player_last_attack = db_get_info('Lastattack')
-        if player_last_attack is not None:
+        if player_last_attack != "None":
             player_last_attack = player_last_attack.split(',')
             self.player.weapon = player_last_attack[0]
             self.player.magic = player_last_attack[1]
@@ -497,9 +495,6 @@ class MyGame(arcade.Window):
     def on_key_release(self, key, modifiers):
         # log out
         if key == arcade.key.ESCAPE:
-            # tell server about log out
-            send_message(game, f'{NAME},KILL,{NAME}'.encode(), public_key, private_key, Server_ADDR)
-            send_message(game, f'KILL, {ADDR}'.encode(), public_key, private_key, (LB_IP, LB_PORT))
             # save stuff in database
             db_set_info('Pos', (f'{self.player.center_x},{self.player.center_y}', NAME))
             db_set_info('Health', (f'{self.player.health}', NAME))
@@ -511,6 +506,9 @@ class MyGame(arcade.Window):
             if items_data != f'':
                 db_set_info('Items', (items_data[1:], NAME))
             db_set_info('Lastattack', (f'{self.player.weapon},{self.player.magic}', NAME))
+            # tell server about log out
+            send_message(game, f'{NAME},KILL,{NAME}'.encode(), public_key, private_key, Server_ADDR)
+            send_message(game, f'KILL, {ADDR}'.encode(), public_key, private_key, (LB_IP, LB_PORT))
             # quit
             arcade.close_window()
             quit("Logged out successfully")
@@ -528,6 +526,15 @@ class MyGame(arcade.Window):
         # drops :P
         elif key == arcade.key.Q and self.player.item is not None:
             self.create_drop()
+
+            # check if drop on barriers/bounds
+            drop_on_bounds_conditions = (
+                        self.player.last_drop.left < MAP_LEFT or self.player.last_drop.bottom < MAP_DOWN
+                        or self.player.last_drop.center_x > MAP_RIGHT - 32
+                        or self.player.last_drop.center_y > MAP_UP - 32)
+            if drop_on_bounds_conditions:
+                self.pick_up_drops(self.player.last_drop)
+                return
             for barrier in self.scene.get_sprite_list(LAYER_NAME_BARRIER):
                 if arcade.check_for_collision(barrier, self.player.last_drop):
                     self.pick_up_drops(self.player.last_drop)
@@ -615,6 +622,43 @@ class MyGame(arcade.Window):
                 return True
         return False
 
+    def player_die(self):
+        # send pss
+        self.send_pss()
+        # new location on map
+        self.player.center_x, self.player.center_y = random.randint(SPAWN["left"], SPAWN["right"]), random.randint(
+            SPAWN["down"],
+            SPAWN["up"])
+        # reset stats
+        self.player.auto_movement = False
+        self.player.auto_movement_time = time.time()
+        self.player.auto_movement_time2 = time.time()
+        self.player.texture = arcade.load_texture(self.player.filename)
+        self.player.cur_texture_index = 0
+        self.player.status = 'down_idle'
+        self.player.animation_time = time.time()
+        self.player.health = PLAYER_STATS['health']
+        self.player.energy = PLAYER_STATS['energy']
+        self.player.speed = PLAYER_STATS['speed']
+        self.player.items = {
+            'sword': {'amount': 'permanent', 'type': 'weapon', 'graphic': './graphic/weapons/sword/full.png'},
+            'lance': {'amount': 'permanent', 'type': 'weapon', 'graphic': './graphic/weapons/lance/full.png'},
+            'axe': {'amount': 'permanent', 'type': 'weapon', 'graphic': './graphic/weapons/axe/full.png'},
+            'rapier': {'amount': 'permanent', 'type': 'weapon', 'graphic': './graphic/weapons/rapier/full.png'},
+            'sai': {'amount': 'permanent', 'type': 'weapon', 'graphic': './graphic/weapons/sai/full.png'},
+            'flame': {'amount': 'permanent', 'type': 'magic', 'graphic': './graphic/magic/flame/fire.png'},
+            'eraser': {'amount': 4, 'type': 'drop', 'graphic': './graphic/drops/eraser.png'},
+            'heal': {'amount': 4, 'type': 'magic', 'graphic': './graphic/magic/heal/heal.png'}}
+        self.player.item = DEFAULT_ITEM
+        self.player.last_drop = None
+        self.player.vulnerable = True
+        self.player.weapon = DEFAULT_WEAPON
+        self.player.current_attack = arcade.Sprite()
+        self.player.attacking = False
+        self.player.magic = DEFAULT_MAGIC
+        self.player.current_magic = arcade.Sprite()
+        self.player.magicing = False
+
     # ------------------ enemies ------------------
 
     def draw_enemies(self):
@@ -630,7 +674,7 @@ class MyGame(arcade.Window):
                 name = 'Bamboo'
             enemy = Enemy(enemy_data[name]['filename'], ENTITY_SIZE, enemy_data[name]['layer'], self.player,
                           self.player_list, self.enemies_number)
-
+            enemy.center_x, enemy.center_y = (random.randint(-2000, -300), random.randint(-2000, -300))
             self.enemies_number += 1
             self.enemies_list.append(enemy)
 
@@ -682,19 +726,23 @@ class MyGame(arcade.Window):
         self.damage_enemies()
 
     def damage_player(self):
-        # the function name is pretty clear...
+        # the function name is pretty clear..
         if self.player.vulnerable:
-            self.player.vulnerable = False
-            self.player.hurt_time = time.time()
             for monster in self.enemies_list:
-                if monster.status != 'attack' or monster.attacked != self.player:
-                    continue
-                elif self.player.health - enemy_data[monster.name]['damage'] <= 0:
-                    self.player.health = 0
-                elif self.player.health > 0:
-                    self.player.health -= enemy_data[monster.name]['damage']
-                else:
-                    self.player.health = 0
+                monster_distance_vec = (self.player.center_x - monster.center_x, self.player.center_y - monster.center_y)
+                monster_distance = math.sqrt((monster_distance_vec[0]) ** 2 + (monster_distance_vec[1]) ** 2)
+                if monster.status == 'attack' and monster.attacked == self.player\
+                        and monster_distance <= enemy_data[monster.name]['attack_radius']:
+                    self.player.vulnerable = False
+                    self.player.hurt_time = time.time()
+                    if self.player.health - enemy_data[monster.name]['damage'] <= 0:
+                        self.player.health = 0
+                        self.player_die()
+                    elif self.player.health > 0:
+                        self.player.health -= enemy_data[monster.name]['damage']
+                    else:
+                        self.player.health = 0
+                        self.player_die()
 
     # ------------------ magic ------------------
 
@@ -812,7 +860,7 @@ class MyGame(arcade.Window):
                 return
             index += 5
 
-    def send_stuff(self):
+    def send_pss(self):
         # PSS
         pss = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
         send_message(game, pss.encode(), public_key, private_key, Server_ADDR)
@@ -846,12 +894,9 @@ class MyGame(arcade.Window):
             physics.update()
         self.enemies_update()
 
-        # Receive info
-        if self.pss_msg:
-            self.read_pss_msg()
         if time.time() - self.pss_time >= PSS_COOLDOWN:
             self.pss_time = time.time()
-            self.send_stuff()
+            self.send_pss()
         if not messages.empty():
             data, addr = messages.get()
             data = data.decode().split(',')
@@ -860,6 +905,7 @@ class MyGame(arcade.Window):
 
             if type == 'PSS':
                 self.pss_msg = data
+                self.read_pss_msg()
 
             elif type == 'LOG':
                 for i in range(2, len(data)):
