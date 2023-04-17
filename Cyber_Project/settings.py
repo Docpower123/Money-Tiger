@@ -1,28 +1,13 @@
 # Server
-
-IP = '192.168.3.11'
+IP = '192.168.68.106'
 RECV_SIZE = 4000
 PSS_COOLDOWN = 0.1
 
 # Load Balancer
-LB_IP = IP
 LB_PORT = 9998
 
 # Slave 1
-S1_IP = IP
 S1_PORT = 9996
-
-# Game1
-FEMALE_IP = IP
-FEMALE_PORT = 6707
-
-# Game2
-MALE_IP = IP
-MALE_PORT = 6660
-
-# Game3
-CLIENT_IP = IP
-CLIENT_PORT = 6661
 
 # Generally game
 SPRITE_SCALING = 1
@@ -30,20 +15,21 @@ SCREEN_COLOR = (113, 221, 238)
 SCREEN_WIDTH = 650
 SCREEN_HEIGHT = 650
 SCREEN_TITLE = "Money Tiger"
-MUSIC_VOLUME = 0
-ENEMIES_NUM = 5
-TILED_MAP = '.\\map\\map.json'
-MAP_RIGHT = 2000
-MAP_LEFT = 64
-MAP_UP = 2000
-MAP_DOWN = 64
+MUSIC_VOLUME = 0.2
+ENEMIES_NUM = 100
+TILED_MAP = 'map/finalmap.json'
 
-#MAP_RIGHT = 28000MAP_LEFT = 450MAP_UP = 19600MAP_DOWN = 550
+# best map
+MAP_RIGHT = 28635
+MAP_LEFT = 440
+MAP_UP = 19724
+MAP_DOWN = 525
+SPAWN = {'right': 27000, 'left': 1000, 'up': 18000, 'down': 1000}
 
 # music!
-DEFAULT_MUSIC = './audio/never.mp3'
+DEFAULT_MUSIC = './audio/tiger.mp3'
 POTION_MUSIC = './audio/gimme.mp3'
-POTION1_MUSIC = './audio/goni.ogg'
+POTION1_MUSIC = './audio/never.mp3'
 
 
 # entity

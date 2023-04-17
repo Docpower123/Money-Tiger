@@ -13,6 +13,7 @@ class Enemy(arcade.Sprite):
         self.player = player
         self.players = players
         self.attacked = self.player
+        self.index = index
         self.layer = 'enemy'+str(index)
 
         # stats

@@ -2,14 +2,33 @@ from socket import *
 from settings import *
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import serialization, hashes
+import mysql.connector
+import hashlib
+import bcrypt
 
 clients = []
 slaves = []
 
 # parameters for the server to use
-HOST = LB_IP
+HOST = gethostbyname(gethostname())
 PORT = LB_PORT
 ADDR = (HOST, PORT)
+
+
+def hash_password(password):
+    # Convert password to bytes
+    password_bytes = password.encode('utf-8')
+
+    # Generate a salt for the password
+    salt = bcrypt.gensalt()
+
+    # Hash the password with the salt
+    hashed_password_bytes = bcrypt.hashpw(password_bytes, salt)
+
+    # Convert the hashed password to a string for database storage
+    hashed_password_str = hashed_password_bytes.decode('utf-8')
+
+    return hashed_password_str
 
 
 def load_private_key(filename):
@@ -76,7 +95,6 @@ def handle_new_user(addr):
     print('new client!', addr)
     server = slaves[0]
     send_response(loadbalancer, f'{server}'.encode(), public_key, private_key, addr)
-    send_response(loadbalancer, f'IP{addr}'.encode(), public_key, private_key, server)
 
 
 # Load the private key from the PEM encoded file
@@ -87,6 +105,11 @@ public_key = load_public_key("public_key.pem")
 loadbalancer = socket(AF_INET, SOCK_DGRAM)
 loadbalancer.bind(ADDR)
 print('load balancer is up and running!')
+
+# connecting to the database
+db = mysql.connector.connect(host="localhost", user="client", passwd="P123321p", database="dblogin",
+                             auth_plugin='mysql_native_password')
+mycur = db.cursor()
 
 # set up connection with slaves
 count = 0
@@ -106,25 +129,72 @@ while True:
         clients.append(addr)
         handle_new_user(addr)
 
+    # save info in database
+    elif data.decode().find(';') != -1 and data.decode().split(';')[1] == "DBS":
+        messag = data.decode().split(';')
+        info_name = messag[2]
+        for i in range(3):
+            messag.pop(0)
+        messag = [hash_password(m) for m in messag]
+        t = tuple(messag)
+        sql = f"update dblogin set {info_name} = %s where Username = %s"
+        mycur.execute(sql, t)
+        db.commit()
 
-# ------------------- to fix / to add -------------------
-# chat! login and save! (not my job)
-# enemies stuck barrier, enemies weird
-# arcade do not like the pergulot area
 
-# ------------------- what we have -------------------
-# synchronized enemies
-# synchronized animation
-# synchronized health
-# synchronized drops
-# synchronized weapons & magic
+    # get info from database
+    elif data.decode().find(',') != -1 and data.decode().split(',')[1] == "DBG":
+        messag = data.decode().split(',')
+        info_name = messag[2]
+        user_password = messag[3]
+        user_name = messag[0]
+        # get info from database
+        sql = f"select {info_name} from dblogin where Username = %s and Password = %s"
+        mycur.execute(sql, [(user_name), (user_password)])
+        info = mycur.fetchall()
+        # send info to client
+        send_response(loadbalancer, f"SERVER,DBG,{info[0][0]}".encode(), public_key, private_key, addr)
+
+    # log varify
+    elif data.decode().find(',') != -1 and data.decode().split(',')[1] == "LV":
+        user_varify = data.decode().split(',')[2]
+        pass_varify = data.decode().split(',')[3]
+        sql = "select * from dblogin where Username = %s and Password = %s"
+        mycur.execute(sql, [(user_varify), (pass_varify)])
+        results = mycur.fetchall()
+        if results:
+            send_response(loadbalancer, "SERVER,LV,T".encode(), public_key, private_key, addr)
+        else:
+            send_response(loadbalancer, "SERVER,LV,F".encode(), public_key, private_key, addr)
+
+    # register new clients
+    elif message.decode().find(',') != -1 and message.decode().split(',')[1] == "REG":
+        username = message.decode().split(',')[2]
+        password = message.decode().split(',')[3]
+        print(username, password)
+        sql = "insert into dblogin (Username, Password) values(%s,%s)"
+        t = (username, password)
+        mycur.execute(sql, t)
+        db.commit()
+
+    if data.decode()[0:4] == "KILL":
+        clients.remove(addr)
 
 # Structure: (USERNAME,TYPE,DATA)
 # Types:
-    # PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health,index)
-    # MDROP - make drops - DATA=(drop_name,x,y, drop_status)
-    # PDROP - pick drops - DATA=(drop_name,x,y)
-    # WAT - weapon attack - DATA=(player_x,player_y,status,name)
-    # MAT - magic attack - DATA=(magic_x,magic_y,status,name)
-    # HURT - enemies hurt - DATA=(enemy_index,player_damage)
-    # KILL - client is no more in game - DATA=(username)
+# PSS - POSITION STATUS STATS - DATA=player(x,y,status,health)+enemies(x,y,status,health,index)
+# MDROP - make drops - DATA=(drop_name,x,y, drop_status)
+# PDROP - pick drops - DATA=(drop_name,x,y)
+# WAT - weapon attack - DATA=(player_x,player_y,status,name)
+# MAT - magic attack - DATA=(magic_x,magic_y,status,name)
+# HURT - enemies hurt - DATA=(enemy_index,player_damage)
+# KILL - client is no more in game - DATA=(username)
+# LOG - client logged in - DATA=(username)
+# MSG - client sent message - DATA=(message)
+# REG - client register - DATA=(username,password)
+# LV (from client) - client login varify - DATA=(username,password)
+# LV (from server) - server response if login succeed or failed - DATA=(T/F)
+# DBS - set info in database - DATA=(info_name,t)
+# DBG (from client) - ask for info which in database - DATA=(info_name,user_password)
+# DBG (from server) - return info which in database - DATA=(info)
+# MSG - client sent message - DATA(message)

@@ -4,19 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a781bd49-b636-4667-ba4a-e2233def3cc1" name="Changes" comment="">
+    <list default="true" id="a46acb75-063c-4a00-9117-207a7e3d45a4" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/LoadBalancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/LoadBalancer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/map/map.json" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/map/map.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/slave 1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/slave 1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/tmx/bestmap.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/tmx/bestmap.tmx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Cyber_Project/tmx/project.tmx" beforeDir="false" afterPath="$PROJECT_DIR$/Cyber_Project/tmx/project.tmx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Prototypes/2 slaves/loadbalancer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Prototypes/2 slaves/loadbalancer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Prototypes/2 slaves/slave 1.py" beforeDir="false" afterPath="$PROJECT_DIR$/Prototypes/2 slaves/slave 1.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -30,15 +33,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "C:/Networks/work/only project",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;project&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/talyu/Documents/GitHub/Money-Tiger/Prototypes/2 slaves&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
-  <component name="RunManager">
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\talyu\Documents\GitHub\Money-Tiger\Prototypes\2 slaves" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python.testing">
     <configuration name="Auth" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -60,6 +69,28 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="Client" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Servers" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\talyu\Documents\GitHub\Money-Tiger\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (Money-Tiger)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/Chat room" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Prototypes/Chat room/Client.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="LoadBalancer" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -67,7 +98,7 @@
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
+      <option name="SDK_HOME" value="C:\Users\docpo\AppData\Local\Microsoft\WindowsApps\python3.10.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -123,19 +154,20 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="client" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="Money-Tiger" />
+    <configuration name="client 2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Servers" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
+      <option name="SDK_HOME" value="C:\Users\talyu\Documents\GitHub\Money-Tiger\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (Money-Tiger)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/2 slaves" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Cyber_Project/client.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Prototypes/2 slaves/client 2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -144,14 +176,36 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="female" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="client" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Servers" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\talyu\Documents\GitHub\Money-Tiger\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (Money-Tiger)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/2 slaves" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Prototypes/2 slaves/client.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="female" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
+      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -165,14 +219,36 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="male" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+    <configuration name="loadbalancer" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Servers" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\talyu\Documents\GitHub\Money-Tiger\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (Money-Tiger)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/2 slaves" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Prototypes/2 slaves/loadbalancer.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="male" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Money-Tiger" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
+      <option name="SDK_HOME" value="C:\Program Files\Python310\python.exe" />
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
@@ -187,18 +263,19 @@
       <method v="2" />
     </configuration>
     <configuration name="slave 1" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
-      <module name="Money-Tiger" />
+      <module name="Servers" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
-      <option name="SDK_HOME" value="C:\Users\talyu\AppData\Local\Programs\Python\Python310\python.exe" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Cyber_Project" />
+      <option name="SDK_HOME" value="C:\Users\talyu\Documents\GitHub\Money-Tiger\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (Money-Tiger)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/2 slaves" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Cyber_Project/slave 1.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Prototypes/2 slaves/slave 1.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -207,11 +284,70 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="slave 2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Servers" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\talyu\Documents\GitHub\Money-Tiger\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (Money-Tiger)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/2 slaves" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Prototypes/2 slaves/slave 2.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="testing" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
+      <module name="Servers" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Users\talyu\Documents\GitHub\Money-Tiger\venv\Scripts\python.exe" />
+      <option name="SDK_NAME" value="Python 3.10 (Money-Tiger)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Prototypes/2 slaves" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Prototypes/2 slaves/testing.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.Auth" />
+      <item itemvalue="Python.Client" />
+      <item itemvalue="Python.LoadBalancer" />
+      <item itemvalue="Python.Secure_Server" />
+      <item itemvalue="Python.Secure_client" />
+      <item itemvalue="Python.client 2" />
+      <item itemvalue="Python.client" />
+      <item itemvalue="Python.female" />
+      <item itemvalue="Python.loadbalancer" />
+      <item itemvalue="Python.male" />
+      <item itemvalue="Python.slave 1" />
+      <item itemvalue="Python.slave 2" />
+      <item itemvalue="Python.testing" />
+    </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.client" />
-        <item itemvalue="Python.male" />
         <item itemvalue="Python.female" />
+        <item itemvalue="Python.male" />
+        <item itemvalue="Python.client" />
         <item itemvalue="Python.slave 1" />
         <item itemvalue="Python.LoadBalancer" />
       </list>
@@ -220,7 +356,7 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="a781bd49-b636-4667-ba4a-e2233def3cc1" name="Changes" comment="" />
+      <changelist id="a46acb75-063c-4a00-9117-207a7e3d45a4" name="Changes" comment="" />
       <created>1670434253390</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />

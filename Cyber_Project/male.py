@@ -1,6 +1,7 @@
 import threading
 import queue
 import arcade
+from arcade.gui import UIManager
 import time
 import random
 from socket import *
@@ -15,12 +16,176 @@ from magic import Magic
 from drop import Drop
 from ui_screen import UI_SCREEN
 from ui import UI
+import tkinter
+from tkinter import *
+from tkinter import messagebox
+import mysql.connector
+from chat import run_chat
 
-# parameters for the server to use
-NAME = 'MALE'
-ADDR = (MALE_IP, MALE_PORT)
-Server_ADDR = (LB_IP, LB_PORT)
-messages = queue.Queue()
+# connecting to the database
+db = mysql.connector.connect(host="localhost", user="root", passwd="P123321p", database="dblogin")
+mycur = db.cursor()
+
+
+def error_destroy():
+    err.destroy()
+
+
+def succ_destroy():
+    succ.destroy()
+    root1.destroy()
+
+
+def error():
+    global err
+    err = Toplevel(root1)
+    err.title("Error")
+    err.geometry("200x100")
+    Label(err, text="All fields are required..", fg="red", font="bold").pack()
+    Label(err, text="").pack()
+    Button(err, text="Ok", bg="grey", width=8, height=1, command=error_destroy).pack()
+
+
+def success():
+    global succ
+    succ = Toplevel(root1)
+    succ.title("Success")
+    succ.geometry("200x100")
+    Label(succ, text="Registration successful...", fg="green", font="bold").pack()
+    Label(succ, text="").pack()
+    Button(succ, text="Ok", bg="grey", width=8, height=1, command=succ_destroy).pack()
+
+
+def register_user():
+    username_info = username.get()
+    password_info = password.get()
+
+    if not all([username_info, password_info]):
+        error()
+    else:
+        sql = "INSERT INTO dblogin VALUES (%s, %s)"
+        t = (username_info, password_info)
+        mycur.execute(sql, t)
+        db.commit()
+
+        global NAME
+        NAME = username.get()
+        success()
+
+
+def registration():
+    global root1, username, password
+    root1 = Toplevel(root)
+    root1.title("Registration")
+    root1.geometry("300x250")
+
+    username = StringVar()
+    password = StringVar()
+
+    Label(root1, text="Register your account", bg="grey", fg="black", font="bold", width=300).pack()
+    Label(root1, text="").pack()
+    Label(root1, text="Username :", font="bold").pack()
+    Entry(root1, textvariable=username).pack()
+    Label(root1, text="").pack()
+    Label(root1, text="Password :").pack()
+    Entry(root1, textvariable=password, show="*").pack()
+    Label(root1, text="").pack()
+    Button(root1, text="Register", bg="red", command=register_user).pack()
+
+
+def login():
+    global root2
+    root2 = Toplevel(root)
+    root2.title("Login")
+    root2.geometry("300x300")
+    global username_varify
+    global password_varify
+    Label(root2, text="Login", bg="grey", fg="black", font="bold", width=300).pack()
+    username_varify = StringVar()
+    password_varify = StringVar()
+    Label(root2, text="").pack()
+    Label(root2, text="Username :", font="bold").pack()
+    Entry(root2, textvariable=username_varify).pack()
+    Label(root2, text="").pack()
+    Label(root2, text="Password :").pack()
+    Entry(root2, textvariable=password_varify, show="*").pack()
+    Label(root2, text="").pack()
+    Button(root2, text="Login", bg="red", command=login_varify).pack()
+    Label(root2, text="")
+
+
+def logg_destroy():
+    logg.destroy()
+    root2.destroy()
+
+
+def fail_destroy():
+    fail.destroy()
+
+
+def logged():
+    global logg
+    logg = Toplevel(root2)
+    logg.title("Welcome")
+    logg.geometry("200x100")
+    Label(logg, text="Welcome {} ".format(username_varify.get()), fg="green", font="bold").pack()
+    global NAME
+    NAME = username_varify.get()
+    Label(logg, text="").pack()
+    Button(logg, text="Log-Out", bg="grey", width=8, height=1, command=logg_destroy).pack()
+
+
+def failed():
+    global fail
+    fail = Toplevel(root2)
+    fail.title("Invalid")
+    fail.geometry("200x100")
+    Label(fail, text="Invalid credentials...", fg="red", font="bold").pack()
+    Label(fail, text="").pack()
+    Button(fail, text="Ok", bg="grey", width=8, height=1, command=fail_destroy).pack()
+
+
+def login_varify():
+    user_varify = username_varify.get()
+    pas_varify = password_varify.get()
+    sql = "select * from dblogin where Username = %s and Password = %s"
+    mycur.execute(sql, [(user_varify), (pas_varify)])
+    results = mycur.fetchall()
+    if results:
+        for i in results:
+            logged()
+            break
+    else:
+        failed()
+
+
+def db_get_info(info_name):
+    user_varify = username_varify.get()
+    pas_varify = password_varify.get()
+    sql = f"select {info_name} from dblogin where Username = %s and Password = %s"
+    mycur.execute(sql, [(user_varify), (pas_varify)])
+    info = mycur.fetchall()
+    return info[0][0]
+
+
+def db_set_info(info_name, t):
+    sql = f"update dblogin set {info_name} = %s where Username = %s"
+    mycur.execute(sql, t)
+    db.commit()
+
+
+def main_screen():
+    global root
+    root = Tk()
+    root.title("Login")
+    root.geometry("300x300")
+    Label(root, text="login", font="bold", bg="grey", fg="black", width=300).pack()
+    Label(root, text="").pack()
+    Button(root, text="Login", width="8", height="1", bg="red", font="bold", command=login).pack()
+    Label(root, text="").pack()
+    Button(root, text="Registration", height="1", width="15", bg="red", font="bold", command=registration).pack()
+    Label(root, text="").pack()
+    Label(root, text="").pack()
 
 
 # security functions
@@ -81,6 +246,15 @@ def receive_response(client_socket, private_key, public_key):
     return decrypted_response, server_address
 
 
+# log in
+main_screen()
+root.mainloop()
+
+# parameters for the server to use
+ADDR = (MALE_IP, MALE_PORT)
+Server_ADDR = (LB_IP, LB_PORT)
+messages = queue.Queue()
+
 # Load the private key from the PEM encoded file
 private_key = load_private_key("private_key.pem")
 # Load the public key from the PEM encoded file
@@ -101,63 +275,123 @@ print("connected")
 def get_info():
     while True:
         data, addr = receive_response(game, private_key, public_key)
-        if data.decode().split(',')[1] == 'PING':
-            send_message(game, f'{NAME},PONG'.encode(), public_key, private_key, Server_ADDR)
-        else:
-            messages.put((data, addr))
+        messages.put((data, addr))
+
+
+def chat():
+    while True:
+        run_chat(NAME)
 
 
 t = threading.Thread(target=get_info)
+t2 = threading.Thread(target=chat)
 t.start()
+t2.start()
 
 
 class MyGame(arcade.Window):
     def __init__(self, width, height, title):
         super().__init__(width, height, title, resizable=True, vsync=True)
-        arcade.set_background_color(SCREEN_COLOR)
 
-        # Screen
+        # Set up game variables
+        self.setup_game()
+
+    def setup_game(self):
+        # Set up game constants
+        arcade.set_background_color(SCREEN_COLOR)
+        self.use_srgb = True
+        self.volume = MUSIC_VOLUME
+        self.selection = 'sword'
+
+        # Set up game objects
+        self.setup_objects()
+
+    def setup_objects(self):
+        # Set up screen
         self.scene = arcade.Scene()
         self.camera = arcade.Camera(self.width, self.height)
         self.tile_map = arcade.load_tilemap(TILED_MAP, TILE_SIZE, layer_options=LAYER_OPTIONS)
         self.pss_msg = []
         self.pss_time = time.time()
-        self.use_srgb = True
 
-        # Sound
+        # Set up sound
         self.sound = arcade.Sound(DEFAULT_MUSIC, streaming=True)
-        self.volume = MUSIC_VOLUME
         self.player_sound = arcade.play_sound(self.sound, self.volume)
 
-        # My Player
+        # Set up player
         self.player = Player(PLAYER_IMAGE, SPRITE_SCALING)
         self.player_physics_engine = None
-        self.message = ''
-        self.messaging = False
-
-        # Players Communication
-        self.players = {NAME: self.player, 'FEMALE': Player(PLAYER_IMAGE, SPRITE_SCALING), 'CLIENT': Player(PLAYER_IMAGE, SPRITE_SCALING)}
+        self.players = {NAME: self.player}
         self.player_list = arcade.SpriteList()
+
+        # Set up drops
         self.drops_list = []
         self.drops_number = 0
+
+        # Set up weapons
         self.weapons_list = []
         self.weapons_number = 0
+
+        # Set up magic
         self.magic_list = []
         self.magic_number = 0
 
-        # Enemies
+        # Set up enemies
         self.enemies_list = []
         self.dead_enemies_list = []
         self.enemies_physics = []
         self.enemies_number = 0
 
-        # Inventory
+        # Set up inventory
         self.ui_screen = UI_SCREEN(self.player)
         self.ui = UI(self.player)
         self.game_paused_ui = False
-        self.selection = 'sword'
 
     # ------------------ set up ------------------
+
+    def info_from_db(self):
+        # Position
+        player_pos = db_get_info('Pos')
+        if player_pos is None:
+            # saving position first time registered
+            self.player.center_x, self.player.center_y = random.randint(SPAWN["left"], SPAWN["right"]), random.randint(
+                SPAWN["down"],
+                SPAWN["up"])
+        else:
+            # going to position in database
+            self.player.center_x, self.player.center_y = (
+                float(player_pos.split(',')[0]), float(player_pos.split(',')[1]))
+
+        # Health
+        player_health = db_get_info('Health')
+        if player_health is not None:
+            self.player.health = int(player_health.split(',')[0])
+
+        # Energy
+        player_energy = db_get_info('Energy')
+        if player_energy is not None:
+            self.player.energy = int(float(player_energy.split(',')[0]))
+
+        # Items
+        player_items = db_get_info('Items')
+        if player_items is not None:
+            player_items = player_items.split(',')
+            for i in range(0, len(player_items), 2):
+                name = player_items[i]
+                amount = int(player_items[i + 1])
+                not_in_items = name not in self.player.items.keys()
+                if not_in_items or self.player.items[name]['amount'] != amount:
+                    if not_in_items: self.player.items[name] = {}
+                    self.player.items[name].update(drop_data[name])
+                    self.player.items[name]['amount'] = amount
+                if i + 2 >= len(player_items): break
+
+        # Last attack
+        player_last_attack = db_get_info('Lastattack')
+        if player_last_attack is not None:
+            player_last_attack = player_last_attack.split(',')
+            self.player.weapon = player_last_attack[0]
+            self.player.magic = player_last_attack[1]
 
     def setup(self):
         # Screen
@@ -166,11 +400,9 @@ class MyGame(arcade.Window):
             arcade.set_background_color(self.tile_map.background_color)
 
         # Player
-        self.player.center_x, self.player.center_y = random.randint(MAP_LEFT, MAP_RIGHT), random.randint(MAP_DOWN, MAP_UP)
-        for p_name, p_sprite in self.players.items():
-            if p_name != NAME: self.player_list.append(p_sprite)
-        self.scene.add_sprite_list('Players', False, self.player_list)
+        self.info_from_db()
         self.scene.add_sprite('Player', self.player)
+
         # pss sending
         pss = f'{NAME},PSS,{self.player.center_x},{self.player.center_y},{self.player.status},{self.player.health}'
         send_message(game, pss.encode(), public_key, private_key, Server_ADDR)
@@ -179,34 +411,28 @@ class MyGame(arcade.Window):
         self.draw_enemies()
 
         # Physics :(
-        player_collisions = self.scene[LAYER_NAME_BARRIER]
-        for player in self.player_list:
-            if player in player_collisions:
-                continue
-            player_collisions.append(player)
-        self.player_physics_engine = arcade.PhysicsEngineSimple(self.player, walls=player_collisions)
+        self.player_physics_engine = arcade.PhysicsEngineSimple(self.player, walls=self.scene[LAYER_NAME_BARRIER])
 
     def on_draw(self):
         # Clear the screen to the background color
-        self.clear()
+        arcade.start_render()
 
         # Draw our seen screen
-        self.scene.draw()
         self.camera.use()
 
-        # enemies health
+        # Draw enemies health
         for monster in self.enemies_list:
             if monster.name != 'Raccoon':
-                arcade.draw_text(monster.health, monster.center_x, monster.center_y + 34, arcade.color.BLACK, 14)
+                arcade.draw_text(str(monster.health), monster.center_x, monster.center_y + 34, arcade.color.BLACK, 14)
             else:
-                arcade.draw_text(monster.health, monster.center_x, monster.center_y + 104, arcade.color.BLACK, 14)
+                arcade.draw_text(str(monster.health), monster.center_x, monster.center_y + 104, arcade.color.BLACK, 14)
 
-        # players health
+        # Draw players health
         for p_name, p_sprite in self.players.items():
             arcade.draw_text(p_name + "  " + str(p_sprite.health), p_sprite.center_x - 34, p_sprite.center_y + 34,
                              arcade.color.BLACK, 14)
 
-        # inventory
+        # Draw inventory
         self.ui.display()
         if self.game_paused_ui:
             self.ui_screen.display(self.selection)
@@ -255,7 +481,7 @@ class MyGame(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         # Don't move if attack
-        if self.player.attacking or self.player.magicing or self.messaging:
+        if self.player.attacking or self.player.magicing:
             return
         # attack!
         if key == arcade.key.SPACE:
@@ -282,24 +508,24 @@ class MyGame(arcade.Window):
             self.player.change_x = self.player.speed
 
     def on_key_release(self, key, modifiers):
-        # chat!
-        if key == arcade.key.ENTER:
-            self.messaging = not self.messaging
-            # if player turned off messaging
-            if not self.messaging:
-                if self.message != '':
-                    print(self.message, end='')
-                print('\nwrite mod off')
-                self.message = ''
-            # if player turned on messaging
-            else:
-                print('write mod on')
-
-        elif self.messaging:
-            if key == arcade.key.BACKSPACE:
-                self.message = self.message[:-1]
-            else:
-                self.message += chr(key)
+        # log out
+        if key == arcade.key.ESCAPE:
+            # tell server about log out
+            send_message(game, f'{NAME},KILL,{NAME}'.encode(), public_key, private_key, Server_ADDR)
+            # save stuff in database
+            db_set_info('Pos', (f'{self.player.center_x},{self.player.center_y}', NAME))
+            db_set_info('Health', (f'{self.player.health}', NAME))
+            db_set_info('Energy', (f'{int(self.player.energy)}', NAME))
+            items_data = f''
+            for item_name, item_value in self.player.items.items():
+                if item_value['amount'] != 'permanent':
+                    items_data += f",{item_name},{item_value['amount']}"
+            if items_data != f'':
+                db_set_info('Items', (items_data[1:], NAME))
+            db_set_info('Lastattack', (f'{self.player.weapon},{self.player.magic}', NAME))
+            # quit
+            arcade.close_window()
+            quit("Logged out successfully")
 
         # regular movement
         elif key == arcade.key.W:
@@ -310,10 +536,6 @@ class MyGame(arcade.Window):
             self.player.change_x = 0
         elif key == arcade.key.D:
             self.player.change_x = 0
-
-        # cords printing
-        elif key == arcade.key.X:
-            print(f'({self.player.center_x},{self.player.center_y})')
 
         # drops :P
         elif key == arcade.key.Q and self.player.item is not None:
@@ -344,7 +566,8 @@ class MyGame(arcade.Window):
                 # weapon
                 if list(self.player.items.values())[self.player.selection_index]['type'] == 'weapon':
                     self.player.weapon = list(self.player.items.keys())[self.player.selection_index]
-                    self.player.current_attack = Weapon((self.player.center_x, self.player.center_y), self.player.weapon, self.player.status)
+                    self.player.current_attack = Weapon((self.player.center_x, self.player.center_y),
+                                                        self.player.weapon, self.player.status)
 
                 # magic
                 elif list(self.player.items.values())[self.player.selection_index]['type'] == 'magic':
@@ -458,7 +681,8 @@ class MyGame(arcade.Window):
     def create_attack(self):
         # the function name is pretty clear...
         self.player.attack_time = time.time()
-        self.player.current_attack = Weapon((self.player.center_x, self.player.center_y), self.player.weapon, self.player.status)
+        self.player.current_attack = Weapon((self.player.center_x, self.player.center_y), self.player.weapon,
+                                            self.player.status)
         self.scene.add_sprite(LAYER_NAME_ITEM, self.player.current_attack)
         self.player.attacking = True
         # WAT message
@@ -492,7 +716,8 @@ class MyGame(arcade.Window):
         # the function name is pretty clear...
         self.player.magic_time = time.time()
         self.player.magicing = True
-        self.player.current_magic = Magic((self.player.center_x, self.player.center_y), self.player.magic, self.player.status)
+        self.player.current_magic = Magic((self.player.center_x, self.player.center_y), self.player.magic,
+                                          self.player.status)
         if self.player.magic == 'potion':
             arcade.stop_sound(self.player_sound)
             self.sound = arcade.Sound(POTION_MUSIC, streaming=True)
@@ -608,6 +833,8 @@ class MyGame(arcade.Window):
         send_message(game, pss.encode(), public_key, private_key, Server_ADDR)
 
     def on_update(self, delta_time):
+        if self.game_paused_ui:
+            return
         # Music!
         if self.player_sound.time == 0:
             self.player_sound = arcade.play_sound(self.sound, self.volume)
@@ -650,6 +877,16 @@ class MyGame(arcade.Window):
 
             if type == 'PSS':
                 self.pss_msg = data
+
+            elif type == 'LOG':
+                for i in range(2, len(data)):
+                    username = data[i]
+                    self.players.update({username: Player(PLAYER_IMAGE, SPRITE_SCALING)})
+                    self.player_list.append(self.players[username])
+                    walls = self.player_physics_engine.walls[0]
+                    walls.append(self.players[username])
+                    self.player_physics_engine = arcade.PhysicsEngineSimple(self.player, walls=walls)
+                    self.scene.add_sprite(LAYER_NAME_ENTITY, self.players[username])
 
             elif type == 'KILL':
                 username = data[2]

@@ -158,6 +158,16 @@ class Player(arcade.Sprite):
         self.center_x += self.change_x
         self.center_y += self.change_y
 
+        # Check for out-of-bounds
+        if self.left < MAP_LEFT:
+            self.left = MAP_LEFT
+        if self.bottom < MAP_DOWN:
+            self.bottom = MAP_DOWN
+        if self.center_x > MAP_RIGHT - 32:
+            self.center_x = MAP_RIGHT - 32
+        if self.center_y > MAP_UP - 32:
+            self.center_y = MAP_UP - 32
+
     def update(self):
         self.animation()
         self.energy_recovery()

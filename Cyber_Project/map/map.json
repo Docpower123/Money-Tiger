@@ -153,23 +153,23 @@
  "tilesets":[
         {
          "firstgid":1,
-         "source":"..\/map\/tsx\/Floor.tsx"
-        }, 
+         "source":".\/tsx\/Floor.tsx"
+        },
         {
          "firstgid":551,
-         "source":"..\/map\/tsx\/details.tsx"
-        }, 
+         "source":".\/tsx\/details.tsx"
+        },
         {
          "firstgid":631,
-         "source":"..\/map\/tsx\/ground.tsx"
-        }, 
+         "source":".\/tsx\/ground.tsx"
+        },
         {
          "firstgid":631,
-         "source":"..\/map\/tsx\/Floor.tsx"
-        }, 
+         "source":".\/tsx\/Floor.tsx"
+        },
         {
          "firstgid":1181,
-         "source":"..\/map\/tsx\/details.tsx"
+         "source":".\/tsx\/details.tsx"
         }],
  "tilewidth":64,
  "type":"map",
